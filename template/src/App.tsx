@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { prototype } from './content/parseFlows.ts'
+import { frameOf } from './device/devices.ts'
 import type { Beat, Edge, Issue } from './content/parseFlows.ts'
 import { BeatPanel } from './viewer/BeatPanel.tsx'
 import { FlowMap } from './viewer/FlowMap.tsx'
 import { LiveStage } from './viewer/LiveStage.tsx'
 
 const { product, issues } = prototype
+const frame = frameOf(product.device).frame
 
 type Route = {
   view: 'map' | 'live'
@@ -75,7 +77,7 @@ export default function App() {
       <div className="app-shell">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Flow map</p>
+            <p className="eyebrow">Flow map · {frame.label}</p>
             <h1>{product.name}</h1>
           </div>
           <div className="view-switch" role="tablist" aria-label="View">

@@ -1,8 +1,9 @@
 import type { Beat, Edge } from '../content/parseFlows.ts'
+import { prototype } from '../content/parseFlows.ts'
 import { screens } from '../screens/index.ts'
+import { frameOf } from './devices.ts'
 import { PhoneFrame } from './PhoneFrame.tsx'
 import { PlaceholderScreen } from './PlaceholderScreen.tsx'
-import { PHONE_W, phoneHeight } from './phoneSize.ts'
 
 type ScaledPhoneProps = {
   beat: Beat
@@ -14,16 +15,19 @@ type ScaledPhoneProps = {
 
 export function ScaledPhone({ beat, scale, interactive = false, onFollow, landmark = false }: ScaledPhoneProps) {
   const Screen = screens[beat.id] ?? PlaceholderScreen
-  const height = phoneHeight(beat.id)
+  const frame = frameOf(prototype.product.device).frame
 
   return (
-    <div className="scaled-phone" style={{ width: PHONE_W * scale, height: height * scale }}>
-      <div className="scaled-phone-inner" style={{ height, transform: `scale(${scale})` }}>
+    <div className="scaled-phone" style={{ width: frame.width * scale, height: frame.height * scale }}>
+      <div
+        className="scaled-phone-inner"
+        style={{ width: frame.width, height: frame.height, transform: `scale(${scale})` }}
+      >
         <PhoneFrame
+          frame={frame}
           label={`${beat.id} ${beat.title}`}
           className={scale < 0.9 ? 'phone-in-map' : undefined}
           landmark={landmark}
-          height={height}
         >
           <Screen beat={beat} interactive={interactive} onFollow={onFollow} />
         </PhoneFrame>

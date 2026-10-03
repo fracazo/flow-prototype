@@ -171,15 +171,66 @@ a:focus-visible {
 
 .phone {
   position: relative;
-  width: 393px;
-  height: 852px;
-  border-radius: 48px;
   overflow: hidden;
   background: var(--placeholder);
   box-shadow:
     0 0 0 1px var(--viewer-border),
     0 0 0 11px var(--viewer-panel),
     0 28px 60px rgba(0, 0, 0, 0.45);
+}
+
+.device-android .phone-home {
+  width: 108px;
+  height: 4px;
+}
+
+.device-watch .phone-status {
+  justify-content: center;
+  height: 36px;
+  font-size: 14px;
+}
+
+.device-web {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.device-web .phone-screen {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.device-browser {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  background: #ececee;
+  color: #3a3a3c;
+  font-size: 13px;
+}
+
+.device-dots {
+  width: 42px;
+  height: 10px;
+  background:
+    radial-gradient(circle at 5px 5px, #ff5f57 4px, transparent 4.5px),
+    radial-gradient(circle at 21px 5px, #febc2e 4px, transparent 4.5px),
+    radial-gradient(circle at 37px 5px, #28c840 4px, transparent 4.5px);
+}
+
+.device-url {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: #fff;
 }
 
 .phone-status {
@@ -261,9 +312,18 @@ a:focus-visible {
 .placeholder {
   height: 100%;
   overflow: auto;
-  padding: 72px var(--screen-pad) 36px;
+  padding: 28px var(--screen-pad) 36px;
   background: var(--placeholder);
   color: var(--ink);
+}
+
+.device-iphone .placeholder,
+.device-android .placeholder {
+  padding-top: 72px;
+}
+
+.device-watch .placeholder {
+  padding-top: 40px;
 }
 
 .placeholder-tag {
@@ -626,8 +686,6 @@ a:focus-visible {
 }
 
 .scaled-phone-inner {
-  width: 393px;
-  height: 852px;
   transform-origin: top left;
 }
 

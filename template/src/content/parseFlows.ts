@@ -1,4 +1,5 @@
 import markdown from '../../flows.md?raw'
+import { frameOf } from '../device/devices.ts'
 import { screens } from '../screens/index.ts'
 
 export const EDGE_TYPES = ['happy', 'branch', 'refusal', 'back', 'sheet', 'inline'] as const
@@ -31,6 +32,7 @@ export type Flow = {
 export type Product = {
   name: string
   promise: string
+  device: string
   flows: Flow[]
 }
 
@@ -68,7 +70,7 @@ function emptyBeat(id: string, flowId: string, title: string): Beat {
 
 export function parseFlows(source: string, implementedIds: ReadonlySet<string>): ParsedFlows {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
-  const product: Product = { name: '', promise: '', flows: [] }
+  const product: Product = { name: '', promise: '', device: '', flows: [] }
   const issues: Issue[] = []
 
   let flow: Flow | null = null
@@ -113,6 +115,11 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
 
     if (line.startsWith('# ')) {
       product.name = line.slice(2).trim()
+      continue
+    }
+
+    if (/^device:\s*/i.test(line) && !beat) {
+      product.device = line.replace(/^device:\s*/i, '').trim()
       continue
     }
 
@@ -201,6 +208,9 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
   if (!product.name) {
     issues.push({ level: 'error', message: 'flows.md has no product name.' })
   }
+
+  const chosen = frameOf(product.device)
+  if (chosen.error) issues.push({ level: 'error', message: chosen.error })
 
   const beats = product.flows.flatMap((item) => item.beats)
   const ids = new Set<string>()

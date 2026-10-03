@@ -1,7 +1,6 @@
 import { MarkerType, type Edge as FlowEdge, type Node } from '@xyflow/react'
 import { EDGE_TYPES, type Beat, type EdgeType, type Product } from '../content/parseFlows.ts'
-
-export const PHONE_SCALE = 0.46
+import { frameOf, mapScale } from '../device/devices.ts'
 
 const NODE_W = 230
 const COL_GAP = 88
@@ -70,8 +69,13 @@ export function buildGraph(product: Product): { nodes: Node[]; edges: FlowEdge[]
   const nodes: Node[] = []
   const edges: FlowEdge[] = []
 
+  const frame = frameOf(product.device).frame
+  const scale = mapScale(frame)
+  const nodeW = Math.max(NODE_W, Math.ceil(frame.width * scale) + 24)
+  const rowPitch = frame.height * scale + LABEL_OFFSET + ROW_GAP
+
   product.flows.forEach((flow, flowIndex) => {
-    const rowY = flowIndex * (PHONE_SCALE * 852 + LABEL_OFFSET + ROW_GAP)
+    const rowY = flowIndex * rowPitch
 
     nodes.push({
       id: `flow-${flow.id}`,
@@ -92,7 +96,7 @@ export function buildGraph(product: Product): { nodes: Node[]; edges: FlowEdge[]
       nodes.push({
         id: beat.id,
         type: 'beat',
-        position: { x: beatIndex * (NODE_W + COL_GAP), y: rowY + LABEL_OFFSET },
+        position: { x: beatIndex * (nodeW + COL_GAP), y: rowY + LABEL_OFFSET },
         data: {
           beat,
           flowIndex,
@@ -102,7 +106,7 @@ export function buildGraph(product: Product): { nodes: Node[]; edges: FlowEdge[]
         } satisfies BeatNodeData,
         draggable: false,
         ariaLabel: `${beat.id} ${beat.title}. ${beat.why}`,
-        style: { width: NODE_W },
+        style: { width: nodeW },
       })
 
       for (const edge of beat.edges) {

@@ -13,9 +13,13 @@ This is its own project. Do not install it inside an existing app.
 
 **The frame matches the device, and the words on it come from flows.md.**
 
-Do not assume iPhone. Use the device the product runs on: iPhone, Android, web, watch, TV, or another one the user names. Set the frame to that device's real size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
+Do not assume iPhone. The product names its device in `flows.md`. The frame keeps that size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
 
-The template starts at 393×852, a phone. Change the frame size and its chrome when the product is a different device. A watch has no status island. A TV is a wide screen. A web page is a browser window.
+```md
+device: iphone
+```
+
+Names: `iphone`, `android`, `web`, `watch`, `tv`. For another screen, use a size: `device: 1024x640`. A missing line uses iPhone. An unknown name is an error and falls back to iPhone. A watch has no status island. A TV is a wide screen. A web page is a browser window. Do not hardcode 393×852 in a screen.
 
 Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
 
@@ -33,6 +37,7 @@ The viewer is in `template/` next to this file.
 ```md
 # Product name
 > One line promise of the product.
+device: iphone
 
 ## 1 | Getting in
 > One line summary of the flow.
@@ -131,4 +136,4 @@ Do not add a banner for beats that lack a refusal or back edge.
 - Not Storybook, and not a second design system.
 - Not three extra views. Map and Live are the prototype.
 
-It is a way to see every screen of a mobile product, and to walk the path from one to the next.
+It is a way to see every screen of a product, on the device it runs on, and to walk the path from one to the next.

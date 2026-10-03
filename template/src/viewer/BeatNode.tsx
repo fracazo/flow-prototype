@@ -1,10 +1,12 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { EDGE_TYPES } from '../content/parseFlows.ts'
+import { prototype, EDGE_TYPES } from '../content/parseFlows.ts'
+import { frameOf, mapScale } from '../device/devices.ts'
 import { ScaledPhone } from '../device/ScaledPhone.tsx'
-import { PHONE_SCALE, handleLeft, type BeatNodeData, type FlowLabelData } from './flowGraph.ts'
+import { handleLeft, type BeatNodeData, type FlowLabelData } from './flowGraph.ts'
 
 export function BeatNode({ data }: NodeProps<Node<BeatNodeData, 'beat'>>) {
   const { beat, flowIndex, unhappy, dimmed, selected } = data
+  const frame = frameOf(prototype.product.device).frame
 
   return (
     <div className={`beat-node flow-color-${flowIndex % 6}${dimmed ? ' is-dim' : ''}${selected ? ' is-selected' : ''}`}>
@@ -30,7 +32,7 @@ export function BeatNode({ data }: NodeProps<Node<BeatNodeData, 'beat'>>) {
           />
         ))}
         <div aria-hidden="true">
-          <ScaledPhone beat={beat} scale={PHONE_SCALE} />
+          <ScaledPhone beat={beat} scale={mapScale(frame)} />
         </div>
       </div>
       <div className="beat-node-caption">

@@ -1,5 +1,6 @@
 # Product name
 > One line promise of the product.
+device: iphone
 
 ## 1 | First flow
 > One line summary of the job.
