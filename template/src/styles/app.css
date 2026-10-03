@@ -427,8 +427,10 @@ a:focus-visible {
 .topbar {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-24);
+  row-gap: var(--space-8);
   padding: var(--space-12) var(--space-20);
   border-bottom: 1px solid var(--viewer-border);
   background: var(--viewer-panel);
@@ -479,6 +481,14 @@ a:focus-visible {
   line-height: var(--caption-line);
 }
 
+@media (max-width: 1100px) {
+  .issue-summary {
+    flex-basis: 100%;
+    margin-left: 0;
+    text-align: right;
+  }
+}
+
 .issue-summary summary {
   cursor: pointer;
   color: var(--accent);
@@ -511,13 +521,45 @@ a:focus-visible {
   background: var(--viewer-bg);
 }
 
+.legend-clip {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.legend-clip::before,
+.legend-clip::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  width: 56px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.legend-clip::before {
+  left: 0;
+  background: linear-gradient(to right, var(--viewer-panel) 0%, var(--viewer-panel) 18%, transparent 100%);
+}
+
+.legend-clip::after {
+  right: 0;
+  background: linear-gradient(to left, var(--viewer-panel) 0%, var(--viewer-panel) 18%, transparent 100%);
+}
+
+.legend-clip.can-scroll-left::before,
+.legend-clip.can-scroll-right::after {
+  opacity: 1;
+}
+
 .legend {
   display: flex;
-  flex: 1;
   flex-wrap: nowrap;
   gap: var(--space-8);
-  min-width: 0;
   overflow-x: auto;
+  scroll-padding-inline: 56px;
 }
 
 .legend-item {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EDGE_TYPES, prototype } from './content/parseFlows.ts'
 import { frameOf } from './device/devices.ts'
 import type { Beat, Edge, EdgeType, Issue } from './content/parseFlows.ts'
@@ -108,25 +108,7 @@ export default function App() {
               Live
             </button>
           </div>
-          {route.view === 'map' ? (
-            <div className="legend" role="group" aria-label="Edge types">
-              {EDGE_TYPES.map((type) => {
-                const on = !hiddenEdges.has(type)
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    className={on ? 'legend-item' : 'legend-item is-off'}
-                    aria-pressed={on}
-                    onClick={() => toggleEdge(type)}
-                  >
-                    <span className={`legend-swatch swatch-${type}`} aria-hidden="true" />
-                    {type}
-                  </button>
-                )
-              })}
-            </div>
-          ) : null}
+          {route.view === 'map' ? <EdgeLegend hidden={hiddenEdges} onToggle={toggleEdge} /> : null}
           <IssueSummary missingScreens={missingScreens} otherErrors={otherErrors} hints={hints} />
         </header>
 
@@ -162,6 +144,53 @@ export default function App() {
         )}
       </div>
     </>
+  )
+}
+
+function EdgeLegend({ hidden, onToggle }: { hidden: Set<EdgeType>; onToggle: (type: EdgeType) => void }) {
+  const scroller = useRef<HTMLDivElement>(null)
+  const [fade, setFade] = useState({ left: false, right: false })
+
+  useEffect(() => {
+    const el = scroller.current
+    if (!el) return
+    const measure = () => {
+      const max = el.scrollWidth - el.clientWidth
+      setFade({
+        left: el.scrollLeft > 1,
+        right: max - el.scrollLeft > 1,
+      })
+    }
+    measure()
+    el.addEventListener('scroll', measure, { passive: true })
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => {
+      el.removeEventListener('scroll', measure)
+      observer.disconnect()
+    }
+  }, [])
+
+  return (
+    <div className={`legend-clip${fade.left ? ' can-scroll-left' : ''}${fade.right ? ' can-scroll-right' : ''}`}>
+      <div className="legend" ref={scroller} role="group" aria-label="Edge types">
+        {EDGE_TYPES.map((type) => {
+          const on = !hidden.has(type)
+          return (
+            <button
+              key={type}
+              type="button"
+              className={on ? 'legend-item' : 'legend-item is-off'}
+              aria-pressed={on}
+              onClick={() => onToggle(type)}
+            >
+              <span className={`legend-swatch swatch-${type}`} aria-hidden="true" />
+              {type}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
