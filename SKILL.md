@@ -1,19 +1,19 @@
 ---
 name: flow-prototype
-description: Stand up a clickable mobile flow prototype with a map of every screen and a live iPhone you can walk. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or to show every screen of a mobile product on one page.
+description: Set up a clickable flow prototype for any product. Map shows every screen of every flow. Live walks one path, screen by screen, at phone size. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
 ---
 
 # Flow prototype
 
-A standalone Vite app. Map shows every beat as a phone. Live walks one flow inside an iPhone frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
+A standalone Vite app for any product. Map shows every screen. Live walks one path, screen by screen. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
 This is its own project. Do not install it inside an existing app.
 
 ## Core principle
 
-**The phone is a real iPhone, and the words on it come from flows.md.**
+**Each screen is shown at phone size, and the words on it come from flows.md.**
 
-The frame is 393×852. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole phone uniformly so it fits the window. Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
+The frame is 393×852, the size of a current phone. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window. Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
 
 ## Start a prototype
 
