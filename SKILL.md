@@ -51,7 +51,7 @@ edges:
 
 - Flow ids are integers. Beat ids are `flow.beat`, such as `1.4`.
 - `copy` keys are free form. A screen uses that copy word for word.
-- Edge types, and nothing else: `happy`, `branch`, `refusal`, `back`, `sheet`, `inline`.
+- Six edge types, and nothing else: `happy`, `branch`, `refusal`, `back`, `sheet`, `inline`.
   - `happy`: next step when all goes well.
   - `branch`: a real alternative route.
   - `refusal`: the system says no.
