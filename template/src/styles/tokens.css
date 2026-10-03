@@ -1,0 +1,75 @@
+/* Generated from design.md. Change tokens there, then update this file. */
+
+:root {
+  --bg-top: #bfd9ea;
+  --bg-bottom: #e6e8ee;
+  --screen-background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-blur: 20px;
+  --surface-solid: #ffffff;
+  --ink: #0e1116;
+  --ink-2: #4a5260;
+  --ink-3: #8a92a0;
+  --line: rgba(14, 17, 22, 0.08);
+  --primary: #0e1116;
+  --on-primary: #ffffff;
+  --accent: #f5b53d;
+  --success: #2fa36b;
+  --danger: #e0484f;
+
+  --font: Inter, system-ui, sans-serif;
+  --display-size: 40px;
+  --display-line: 44px;
+  --display-weight: 500;
+  --display-tracking: -0.02em;
+  --title-size: 22px;
+  --title-line: 28px;
+  --title-weight: 600;
+  --body-size: 15px;
+  --body-line: 21px;
+  --body-weight: 400;
+  --label-size: 13px;
+  --label-line: 18px;
+  --label-weight: 500;
+  --caption-size: 12px;
+  --caption-line: 16px;
+  --caption-weight: 400;
+
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --screen-pad: 20px;
+
+  --radius-card: 20px;
+  --radius-field: 14px;
+  --radius-button: 999px;
+  --radius-icon: 22px;
+  --shadow: 0 8px 24px rgba(14, 17, 22, 0.08);
+
+  --viewer-bg: #111316;
+  --viewer-panel: #181b1f;
+  --viewer-border: #24282e;
+  --viewer-text: #e8eaed;
+  --viewer-muted: #7c838e;
+
+  --edge-happy: #8a92a0;
+  --edge-branch: #4c9be8;
+  --edge-refusal: #e8913a;
+  --edge-back: #8a92a0;
+  --edge-sheet: #9b6bf0;
+  --edge-inline: #e0484f;
+
+  --flow-0: #7b6cf6;
+  --flow-1: #4c9be8;
+  --flow-2: #3fbf7f;
+  --flow-3: #e8913a;
+  --flow-4: #e0484f;
+  --flow-5: #c06cf0;
+
+  --placeholder: #d5d8de;
+}
