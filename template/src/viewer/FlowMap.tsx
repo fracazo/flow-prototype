@@ -18,6 +18,7 @@ const edgeTypes = { lane: LaneEdge }
 
 type FlowMapProps = {
   selectedId: string | null
+  hidden: ReadonlySet<EdgeType>
   onSelect: (beatId: string) => void
   onOpenLive: (beatId: string) => void
 }
@@ -40,11 +41,10 @@ function relatedIds(beatId: string, beats: Beat[]) {
   return ids
 }
 
-export function FlowMap({ selectedId, onSelect, onOpenLive }: FlowMapProps) {
+export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapProps) {
   const beats = useMemo(() => prototype.product.flows.flatMap((flow) => flow.beats), [])
   const graph = useMemo(() => buildGraph(prototype.product), [])
   const [hoverId, setHoverId] = useState<string | null>(null)
-  const [hidden, setHidden] = useState<Set<EdgeType>>(() => new Set())
   const colors = useMemo(() => readEdgeColors(), [])
 
   const nodes = useMemo<Node[]>(() => {
@@ -88,34 +88,8 @@ export function FlowMap({ selectedId, onSelect, onOpenLive }: FlowMapProps) {
     })
   }, [graph.edges, hidden, hoverId, beats, colors])
 
-  function toggle(type: EdgeType) {
-    setHidden((current) => {
-      const next = new Set(current)
-      if (next.has(type)) next.delete(type)
-      else next.add(type)
-      return next
-    })
-  }
-
   return (
     <div className="map-canvas">
-      <div className="legend" role="group" aria-label="Edge types">
-        {EDGE_TYPES.map((type) => {
-          const on = !hidden.has(type)
-          return (
-            <button
-              key={type}
-              type="button"
-              className={on ? 'legend-item' : 'legend-item is-off'}
-              aria-pressed={on}
-              onClick={() => toggle(type)}
-            >
-              <span className={`legend-swatch swatch-${type}`} aria-hidden="true" />
-              {type}
-            </button>
-          )
-        })}
-      </div>
       <ReactFlow
         nodes={nodes}
         edges={edges}

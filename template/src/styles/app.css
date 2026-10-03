@@ -512,14 +512,16 @@ a:focus-visible {
 }
 
 .legend {
-  position: absolute;
-  z-index: 5;
-  top: var(--space-16);
-  left: var(--space-16);
   display: flex;
-  flex-wrap: wrap;
+  flex: 1;
+  flex-wrap: nowrap;
   gap: var(--space-8);
-  max-width: 420px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.legend-item {
+  flex: none;
 }
 
 .legend-item,

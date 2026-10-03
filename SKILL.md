@@ -136,4 +136,4 @@ Do not add a banner for beats that lack a refusal or back edge.
 - Not Storybook, and not a second design system.
 - Not three extra views. Map and Live are the prototype.
 
-It is a way to see every screen of a product, on the device it runs on, and to walk the path from one to the next.
+It is a way to see every screen of a product, on any device, and to walk the path from one to the next.

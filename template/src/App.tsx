@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { prototype } from './content/parseFlows.ts'
+import { EDGE_TYPES, prototype } from './content/parseFlows.ts'
 import { frameOf } from './device/devices.ts'
-import type { Beat, Edge, Issue } from './content/parseFlows.ts'
+import type { Beat, Edge, EdgeType, Issue } from './content/parseFlows.ts'
 import { BeatPanel } from './viewer/BeatPanel.tsx'
 import { FlowMap } from './viewer/FlowMap.tsx'
 import { LiveStage } from './viewer/LiveStage.tsx'
@@ -45,6 +45,7 @@ function firstBeat(of?: Beat) {
 export default function App() {
   const byId = new Map(allBeats().map((beat) => [beat.id, beat]))
   const [route, setRoute] = useState<Route>(parseHash)
+  const [hiddenEdges, setHiddenEdges] = useState<Set<EdgeType>>(() => new Set())
 
   useEffect(() => {
     document.title = product.name ? `${product.name} · Flow map` : 'Flow map'
@@ -62,6 +63,15 @@ export default function App() {
 
   function go(next: Route) {
     writeHash(next)
+  }
+
+  function toggleEdge(type: EdgeType) {
+    setHiddenEdges((current) => {
+      const next = new Set(current)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
   }
 
   function follow(edge: Edge) {
@@ -98,6 +108,25 @@ export default function App() {
               Live
             </button>
           </div>
+          {route.view === 'map' ? (
+            <div className="legend" role="group" aria-label="Edge types">
+              {EDGE_TYPES.map((type) => {
+                const on = !hiddenEdges.has(type)
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    className={on ? 'legend-item' : 'legend-item is-off'}
+                    aria-pressed={on}
+                    onClick={() => toggleEdge(type)}
+                  >
+                    <span className={`legend-swatch swatch-${type}`} aria-hidden="true" />
+                    {type}
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
           <IssueSummary missingScreens={missingScreens} otherErrors={otherErrors} hints={hints} />
         </header>
 
@@ -105,6 +134,7 @@ export default function App() {
           <div className={selected ? 'map-wrap' : 'map-wrap panel-closed'} id="flow-map">
             <FlowMap
               selectedId={selected?.id ?? null}
+              hidden={hiddenEdges}
               onSelect={(beatId) => go({ view: 'map', beatId })}
               onOpenLive={(beatId) => go({ view: 'live', beatId })}
             />
