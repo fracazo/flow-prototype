@@ -1,19 +1,23 @@
 ---
 name: flow-prototype
-description: Set up a clickable flow prototype for any product. Map shows every screen of every flow. Live walks one path, screen by screen, at phone size. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
+description: Set up a clickable flow prototype for any product on any device, including iPhone, Android, web, watch, and TV. Map shows every screen of every flow. Live walks one path, screen by screen, in that device's frame. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
 ---
 
 # Flow prototype
 
-A standalone Vite app for any product. Map shows every screen. Live walks one path, screen by screen. What exists lives in `flows.md`. How it looks lives in `design.md`.
+A standalone Vite app for any product, on any device. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
 This is its own project. Do not install it inside an existing app.
 
 ## Core principle
 
-**Each screen is shown at phone size, and the words on it come from flows.md.**
+**The frame matches the device, and the words on it come from flows.md.**
 
-The frame is 393×852, the size of a current phone. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window. Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
+Do not assume iPhone. Use the device the product runs on: iPhone, Android, web, watch, TV, or another one the user names. Set the frame to that device's real size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
+
+The template starts at 393×852, a phone. Change the frame size and its chrome when the product is a different device. A watch has no status island. A TV is a wide screen. A web page is a browser window.
+
+Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
 
 ## Start a prototype
 
@@ -79,9 +83,9 @@ Two views of the same beats. The page around the phones is dark. Its colors are 
 
 `#/live/1.1`
 
-- One phone at 393×852, plus the beat's why and its edges.
+- One device frame at that product's real size, plus the beat's why and its edges.
 - Arrow right follows `happy`. Arrow left follows `back`. Escape returns to the map.
-- The phone scales uniformly to fit. It never grows past 1.
+- The frame scales uniformly to fit. It never grows past 1.
 
 ## Screens
 
