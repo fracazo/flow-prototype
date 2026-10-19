@@ -7,13 +7,13 @@ description: Set up a clickable flow prototype for any product on any device, in
 
 A standalone Vite app for any product, on any device. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
-This is its own project. Do not install it inside an existing app.
+The prototype is its own Vite app with its own `package.json`. For an existing product it may sit beside the product, for example `<repo>/prototype/`, so it can read the product's files. Never put it inside the product's `src` or build.
 
 ## Core principle
 
 **The frame matches the device, and the words on it come from flows.md.**
 
-Do not assume iPhone. The product names its device in `flows.md`. The frame keeps that size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
+Do not assume iPhone. Ask which device before you start, and write the answer in `flows.md`. The frame keeps that size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
 
 ```md
 device: iphone
@@ -27,10 +27,25 @@ Copy, colors, and spacing are not typed into components. If something is missing
 
 The viewer is in `template/` next to this file.
 
-1. Copy `template/` into an empty folder. Do not copy `node_modules`.
-2. Run `npm install`, then `npm run dev`.
-3. Open `#/map`. The example flow is two placeholder phones. Replace `flows.md` with the real product before building screens.
-4. Stop and show the user the map before writing real screens.
+### 0. Does the product already exist?
+
+Ask if it is not clear. If there is code, a live site, or a design system, do this before anything else. It is the fast path: most beats become screenshots, and only new beats are built by hand.
+
+1. **Routes.** Find the router (a `routes` file, `app/` or `pages/` folders, a steps config, a nav component). List each user-facing route with its URL. Check that each one is still in use: a config can outlive the screen it describes. Show the user the list and ask which flows the prototype covers.
+2. **Design source.** Look, in this order, for a tokens file (`tokens.css`, `theme.ts`, `tailwind.config.*`, CSS variables in a global stylesheet), a `DESIGN.md` or brand doc, Storybook, then the live site. Name the source at the top of `design.md`.
+3. **Generate `design.md` and `tokens.css`** from that source. Copy values, do not guess them. Use the product's own token names in `tokens.css`. The viewer does not read them, so any names work.
+4. **Copy.** Long copy on existing screens comes from the screenshot, not from `flows.md`. Only type copy for beats you build by hand.
+
+For a new product, skip this step and agree `design.md` with the user first.
+
+### 1. Set up
+
+1. Ask which device, or devices, the product runs on. Do not default to iPhone.
+2. Copy `template/` into an empty folder. Do not copy `node_modules`.
+3. Run `npm install`, then `npm run dev`.
+4. `design.md` ships blank. Fill it (step 0, or with the user) before writing any screen. A filled-in sample is in `examples/` next to this file. It belongs to another product: never copy its values.
+5. Replace `flows.md` with the real product. For an existing product, add `url:` to each beat that already exists and run `npm run capture` (see Screenshots).
+6. Open `#/map`. Stop and show the user the map before writing real screens.
 
 ## flows.md
 
@@ -71,7 +86,7 @@ Never change `flows.md` silently. If a beat or edge is missing, say so and sugge
 
 ## Views
 
-Two views of the same beats. The page around the phones is dark. Its colors are in `design.md` under Viewer.
+Two views of the same beats. The page around the phones is dark. Its look is in `src/styles/viewer.css`, which reads only `--viewer-*` tokens. Do not restyle the viewer to match the product, and do not put product tokens in `viewer.css`.
 
 ### Map
 
