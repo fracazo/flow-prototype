@@ -1,4 +1,5 @@
-export type Chrome = 'iphone' | 'android' | 'web' | 'watch' | 'tv' | 'plain'
+// Supported: iphone, android, web. A WxH size is best effort, drawn as a plain frame.
+export type Chrome = 'iphone' | 'android' | 'web' | 'plain'
 
 export type DeviceFrame = {
   id: string
@@ -18,8 +19,6 @@ const PRESETS: Record<string, DeviceFrame> = {
   iphone: { id: 'iphone', label: 'iPhone', width: 393, height: 852, radius: 48, chrome: 'iphone', inset: { top: 54, bottom: 34 } },
   android: { id: 'android', label: 'Android', width: 412, height: 915, radius: 36, chrome: 'android', inset: { top: 36, bottom: 24 } },
   web: { id: 'web', label: 'Web', width: 1280, height: 800, radius: 12, chrome: 'web', inset: { top: 0, bottom: 0 } },
-  watch: { id: 'watch', label: 'Watch', width: 198, height: 242, radius: 54, chrome: 'watch', inset: { top: 0, bottom: 0 } },
-  tv: { id: 'tv', label: 'TV', width: 1920, height: 1080, radius: 16, chrome: 'tv', inset: { top: 0, bottom: 0 } },
 }
 
 export function frameOf(value?: string): { frame: DeviceFrame; error?: string } {
@@ -49,7 +48,9 @@ export function frameOf(value?: string): { frame: DeviceFrame; error?: string } 
 
   return {
     frame: PRESETS.iphone,
-    error: `Unknown device "${raw}". Use iphone, android, web, watch, tv, or a size like 1024x640.`,
+    error: /^(watch|tv)$/.test(key)
+      ? `${raw} is not supported. Use a size like ${key === 'watch' ? '198x242' : '1920x1080'} for a best-effort frame.`
+      : `Unknown device "${raw}". Use iphone, android, web, or a size like 1024x640.`,
   }
 }
 

@@ -12,8 +12,7 @@ type PhoneFrameProps = {
 
 export function PhoneFrame({ children, label, frame, className, landmark = true }: PhoneFrameProps) {
   const Tag = landmark ? 'section' : 'div'
-  const showStatus = frame.chrome === 'iphone' || frame.chrome === 'android' || frame.chrome === 'watch'
-  const showHome = frame.chrome === 'iphone' || frame.chrome === 'android'
+  const isPhone = frame.chrome === 'iphone' || frame.chrome === 'android'
 
   return (
     <Tag
@@ -28,20 +27,18 @@ export function PhoneFrame({ children, label, frame, className, landmark = true 
           <span className="device-url">preview</span>
         </div>
       ) : null}
-      {showStatus ? (
+      {isPhone ? (
         <div className="phone-status" aria-hidden="true">
           <span>9:41</span>
-          {frame.chrome === 'watch' ? null : (
-            <span className="phone-status-icons" aria-hidden="true">
-              <Signal size={16} strokeWidth={1.5} />
-              <Wifi size={16} strokeWidth={1.5} />
-              <BatteryFull size={18} strokeWidth={1.5} />
-            </span>
-          )}
+          <span className="phone-status-icons" aria-hidden="true">
+            <Signal size={16} strokeWidth={1.5} />
+            <Wifi size={16} strokeWidth={1.5} />
+            <BatteryFull size={18} strokeWidth={1.5} />
+          </span>
         </div>
       ) : null}
       <div className="phone-screen">{children}</div>
-      {showHome ? <div className="phone-home" aria-hidden="true" /> : null}
+      {isPhone ? <div className="phone-home" aria-hidden="true" /> : null}
     </Tag>
   )
 }

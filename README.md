@@ -1,6 +1,6 @@
 # Flow prototype
 
-Sets up a clickable flow prototype for any product, on any device: iPhone, Android, web, watch, TV, or whatever it runs on. You write the screens and the paths between them. A coding agent builds two views from that:
+Sets up a clickable flow prototype for a mobile or desktop product: iPhone, Android, or web. Other screen sizes work as a plain frame, best effort. You write the screens and the paths between them. A coding agent builds two views from that:
 
 - **Map** puts every screen of every flow on one page, so the whole product can be scanned at once.
 - **Live** walks one path the way a person would, screen by screen, in that device's frame.

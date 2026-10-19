@@ -1,11 +1,11 @@
 ---
 name: flow-prototype
-description: Set up a clickable flow prototype for any product on any device, including iPhone, Android, web, watch, and TV. Map shows every screen of every flow. Live walks one path, screen by screen, in that device's frame. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
+description: Set up a clickable flow prototype for a mobile or desktop product, on iPhone, Android, or web. Map shows every screen of every flow. Live walks one path, screen by screen, in that device's frame. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
 ---
 
 # Flow prototype
 
-A standalone Vite app for any product, on any device. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
+A standalone Vite app for a mobile or desktop product. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
 It has its own `package.json`. For an existing product it may sit beside the product, for example `<repo>/prototype/`, so it can read the product's files. Never put it inside the product's `src` or build.
 
@@ -19,9 +19,11 @@ Do not assume iPhone. Ask which device before you start, and write the answer in
 device: iphone
 ```
 
-Names: `iphone`, `android`, `web`, `watch`, `tv`. For another screen, use a size: `device: 1024x640`. A missing line uses iPhone. An unknown name is an error and is skipped.
+Supported: `iphone`, `android`, `web`. These have real frames, capture sizes, and are tested. A missing line uses iPhone. An unknown name is an error and is skipped.
 
-A product on more than one device lists them all: `device: web, iphone`. The first is the default. Map and Live get a device toggle, and the URL keeps the choice (`#/live/1.2?device=iphone`). Every beat is drawn on every device: a screen reads `frame` and lays itself out for it, and `npm run capture` shoots each `url:` once per device. A watch has no status island. A TV is a wide screen. A web page is a browser window. Do not hardcode 393×852 in a screen.
+Anything else (a tablet, a watch, a TV, a kiosk) is best effort: give its size, `device: 1024x640`, and it gets a plain frame with no status bar or browser chrome. Tell the user it is best effort. Watch and TV are not supported names.
+
+A product on more than one device lists them all: `device: web, iphone`. The first is the default. Map and Live get a device toggle, and the URL keeps the choice (`#/live/1.2?device=iphone`). Every beat is drawn on every device: a screen reads `frame` and lays itself out for it, and `npm run capture` shoots each `url:` once per device. A web page is a browser window. Do not hardcode 393×852 in a screen.
 
 Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
 
@@ -236,4 +238,4 @@ Do not add a banner for beats that lack a refusal or back edge.
 - Not Storybook, and not a second design system.
 - Not three extra views. Map and Live are the prototype.
 
-It is a way to see every screen of a product, on any device, and to walk the path from one to the next.
+It is a way to see every screen of a mobile or desktop product, and to walk the path from one to the next.
