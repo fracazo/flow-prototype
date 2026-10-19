@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Beat, Edge } from '../content/parseFlows.ts'
 import { frameOf } from '../device/devices.ts'
 import { PhoneFrame } from '../device/PhoneFrame.tsx'
-import { PlaceholderScreen } from '../device/PlaceholderScreen.tsx'
-import { prototype } from '../content/parseFlows.ts'
-import { screens } from '../screens/index.ts'
+import { BeatScreen } from '../device/BeatScreen.tsx'
+import { prototype } from '../content/prototype.ts'
 import { edgeLabel } from './edgeLabel.ts'
 
 type LiveStageProps = {
@@ -17,7 +16,6 @@ type LiveStageProps = {
 export function LiveStage({ beat, onFollow, onRestart, onOverview }: LiveStageProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState(1)
-  const Screen = screens[beat.id] ?? PlaceholderScreen
   const frame = frameOf(prototype.product.device).frame
 
   useEffect(() => {
@@ -55,7 +53,7 @@ export function LiveStage({ beat, onFollow, onRestart, onOverview }: LiveStagePr
       <div className="live-fit" style={{ width: (frame.width + 256) * fit, height: frame.height * fit }}>
         <div className="live-row" style={{ transform: `scale(${fit})` }}>
           <PhoneFrame frame={frame} label={`${beat.id} ${beat.title}`}>
-            <Screen beat={beat} interactive onFollow={onFollow} />
+            <BeatScreen beat={beat} frame={frame} interactive onFollow={onFollow} />
           </PhoneFrame>
           <div className="live-controls">
             <button type="button" onClick={onRestart}>

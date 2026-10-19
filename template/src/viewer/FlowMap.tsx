@@ -11,7 +11,7 @@ import { EDGE_TYPES, type Beat, type EdgeType } from '../content/parseFlows.ts'
 import { BeatNode, FlowLabelNode } from './BeatNode.tsx'
 import { LaneEdge } from './LaneEdge.tsx'
 import { buildGraph, edgeDash, type BeatNodeData } from './flowGraph.ts'
-import { prototype } from '../content/parseFlows.ts'
+import { prototype } from '../content/prototype.ts'
 
 const nodeTypes = { beat: BeatNode, flowLabel: FlowLabelNode }
 const edgeTypes = { lane: LaneEdge }

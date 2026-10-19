@@ -1,5 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { prototype, EDGE_TYPES } from '../content/parseFlows.ts'
+import { EDGE_TYPES } from '../content/parseFlows.ts'
+import { prototype } from '../content/prototype.ts'
 import { frameOf, mapScale } from '../device/devices.ts'
 import { ScaledPhone } from '../device/ScaledPhone.tsx'
 import { handleLeft, type BeatNodeData, type FlowLabelData } from './flowGraph.ts'

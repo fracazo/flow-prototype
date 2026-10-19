@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { EDGE_TYPES, prototype } from './content/parseFlows.ts'
+import { EDGE_TYPES } from './content/parseFlows.ts'
+import { prototype } from './content/prototype.ts'
 import { frameOf } from './device/devices.ts'
 import type { Beat, Edge, EdgeType, Issue } from './content/parseFlows.ts'
 import { BeatPanel } from './viewer/BeatPanel.tsx'
@@ -58,7 +59,7 @@ export default function App() {
   const selected = route.beatId ? byId.get(route.beatId) : undefined
   const errors = issues.filter((item) => item.level === 'error')
   const hints = issues.filter((item) => item.level === 'hint')
-  const otherErrors = errors.filter((item) => !item.message.includes('no screen component'))
+  const otherErrors = errors.filter((item) => !item.placeholder)
   const missingScreens = errors.length - otherErrors.length
 
   function go(next: Route) {

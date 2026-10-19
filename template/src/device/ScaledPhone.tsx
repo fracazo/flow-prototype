@@ -1,9 +1,8 @@
 import type { Beat, Edge } from '../content/parseFlows.ts'
-import { prototype } from '../content/parseFlows.ts'
-import { screens } from '../screens/index.ts'
+import { prototype } from '../content/prototype.ts'
 import { frameOf } from './devices.ts'
 import { PhoneFrame } from './PhoneFrame.tsx'
-import { PlaceholderScreen } from './PlaceholderScreen.tsx'
+import { BeatScreen } from './BeatScreen.tsx'
 
 type ScaledPhoneProps = {
   beat: Beat
@@ -14,7 +13,6 @@ type ScaledPhoneProps = {
 }
 
 export function ScaledPhone({ beat, scale, interactive = false, onFollow, landmark = false }: ScaledPhoneProps) {
-  const Screen = screens[beat.id] ?? PlaceholderScreen
   const frame = frameOf(prototype.product.device).frame
 
   return (
@@ -29,7 +27,7 @@ export function ScaledPhone({ beat, scale, interactive = false, onFollow, landma
           className={scale < 0.9 ? 'phone-in-map' : undefined}
           landmark={landmark}
         >
-          <Screen beat={beat} interactive={interactive} onFollow={onFollow} />
+          <BeatScreen beat={beat} frame={frame} interactive={interactive} onFollow={onFollow} />
         </PhoneFrame>
       </div>
     </div>

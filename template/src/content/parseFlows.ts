@@ -1,6 +1,5 @@
-import markdown from '../../flows.md?raw'
+// Pure parser: no Vite imports, so scripts/capture.ts can run it in Node.
 import { frameOf } from '../device/devices.ts'
-import { screens } from '../screens/index.ts'
 
 export const EDGE_TYPES = ['happy', 'branch', 'refusal', 'back', 'sheet', 'inline'] as const
 
@@ -18,6 +17,12 @@ export type Beat = {
   why: string
   screen: string
   copy: Record<string, string>
+  /** Page to capture for this beat, absolute or relative to the product's base. */
+  url: string
+  /** Screenshot file name in src/shots, when it is not `<id>.png`. */
+  image: string
+  /** The screenshot already includes the status bar and home indicator. */
+  bleed: boolean
   edges: Edge[]
   end: boolean
 }
@@ -33,6 +38,8 @@ export type Product = {
   name: string
   promise: string
   device: string
+  /** Where `url:` paths start, such as http://localhost:3000. */
+  base: string
   flows: Flow[]
 }
 
@@ -42,6 +49,8 @@ export type Issue = {
   level: IssueLevel
   beatId?: string
   message: string
+  /** A beat that still shows the grey placeholder. Counted, not listed. */
+  placeholder?: boolean
 }
 
 export type ParsedFlows = {
@@ -63,14 +72,20 @@ function emptyBeat(id: string, flowId: string, title: string): Beat {
     why: '',
     screen: '',
     copy: {},
+    url: '',
+    image: '',
+    bleed: false,
     edges: [],
     end: false,
   }
 }
 
-export function parseFlows(source: string, implementedIds: ReadonlySet<string>): ParsedFlows {
+/** What a beat renders. A component wins over a screenshot. */
+export type ScreenSource = 'component' | 'shot' | 'none'
+
+export function parseFlows(source: string, screenOf: (beat: Beat, product: Product) => ScreenSource = () => 'component'): ParsedFlows {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
-  const product: Product = { name: '', promise: '', device: '', flows: [] }
+  const product: Product = { name: '', promise: '', device: '', base: '', flows: [] }
   const issues: Issue[] = []
 
   let flow: Flow | null = null
@@ -123,6 +138,11 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
       continue
     }
 
+    if (/^base:\s*/i.test(line) && !flow) {
+      product.base = line.replace(/^base:\s*/i, '').trim()
+      continue
+    }
+
     if (line.startsWith('>')) {
       const text = line.replace(/^>\s?/, '').trim()
       if (!flow && !product.promise) product.promise = text
@@ -150,6 +170,24 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
 
     if (/^screen:\s*/i.test(line)) {
       beat.screen = line.replace(/^screen:\s*/i, '').trim()
+      mode = 'root'
+      continue
+    }
+
+    if (/^url:\s*/i.test(line)) {
+      beat.url = line.replace(/^url:\s*/i, '').trim()
+      mode = 'root'
+      continue
+    }
+
+    if (/^image:\s*/i.test(line)) {
+      beat.image = line.replace(/^image:\s*/i, '').trim()
+      mode = 'root'
+      continue
+    }
+
+    if (/^bleed:\s*true\s*$/i.test(line)) {
+      beat.bleed = true
       mode = 'root'
       continue
     }
@@ -242,11 +280,22 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
       })
     }
 
-    if (!implementedIds.has(item.id)) {
+    if (screenOf(item, product) === 'none') {
       issues.push({
         level: 'error',
         beatId: item.id,
-        message: `${item.id} has no screen component yet.`,
+        placeholder: true,
+        message: item.url
+          ? `${item.id} has a url but no screenshot yet. Run npm run capture.`
+          : `${item.id} has no screen component or screenshot yet.`,
+      })
+    }
+
+    if (item.url && !/^https?:\/\//i.test(item.url) && !product.base) {
+      issues.push({
+        level: 'error',
+        beatId: item.id,
+        message: `${item.id} has a relative url and flows.md has no base: line.`,
       })
     }
 
@@ -276,5 +325,3 @@ export function parseFlows(source: string, implementedIds: ReadonlySet<string>):
 
   return { product, issues }
 }
-
-export const prototype = parseFlows(markdown, new Set(Object.keys(screens)))

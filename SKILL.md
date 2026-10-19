@@ -53,12 +53,14 @@ For a new product, skip this step and agree `design.md` with the user first.
 # Product name
 > One line promise of the product.
 device: iphone
+base: http://localhost:3000
 
 ## 1 | Getting in
 > One line summary of the flow.
 
 ### 1.1 | Get started
 why: One sentence on why this beat exists.
+url: /welcome
 screen: Short description of the layout.
 copy:
 - title: ...
@@ -81,6 +83,9 @@ edges:
 - An edge may point at another flow (`- branch -> 3.1`).
 - A beat with no outgoing edge is marked `end: true`.
 - A section `## Shared | Home & chrome` uses flow id `S` and beats `S.1`, `S.2`.
+- `url:` marks a beat that already exists in the product. It is a path from `base:`, or a full URL. A beat with a `url:` needs no `copy:`: the words come from the screenshot.
+- `image:` names a screenshot file in `src/shots/` when it is not `<beat id>.png`. Use it for states a URL cannot reach.
+- `bleed: true` says the image already has the status bar and home indicator, so the frame hides its own.
 
 Never change `flows.md` silently. If a beat or edge is missing, say so and suggest the exact lines.
 
@@ -109,7 +114,33 @@ Two views of the same beats. The page around the phones is dark. Its look is in 
 
 ## Screens
 
-One file per beat: `src/screens/1.1.tsx`. Register it in `src/screens/index.ts`. A beat with no component renders the grey placeholder. That is correct until the screen exists.
+Each beat renders one of three things, in this order:
+
+1. A hand-built component registered in `src/screens/index.ts`.
+2. A screenshot in `src/shots/<device>/<beat id>.png`, or `src/shots/<beat id>.png` for every device.
+3. The grey placeholder. That is correct until the screen exists.
+
+### Screenshots first
+
+Screens that already exist are screenshots, not rebuilds. Hand-build only the beats that do not exist yet. That is where the prototype earns its keep.
+
+```bash
+npm run capture:setup      # once: downloads Chromium for Playwright
+npm run capture            # every beat with a url:
+npm run capture -- 1.2 1.3 # only these beats
+npm run capture -- --login # sign in by hand once, then capture signed in
+```
+
+- The script opens each `url:` at the device's screen size, minus the frame's status bar, home indicator, or browser bar, at 2x. Phones get a mobile user agent and touch.
+- `--login` opens a real browser at `base:`. The user signs in themselves. The session is saved to `capture-auth.json`, which is gitignored. Never type the user's password for them.
+- If the log says a beat was redirected, the session is missing or expired. Run `--login` again.
+- A URL only reaches what a fresh page load shows. Mid-flow states (step 3 of a form, an error, an open sheet) need a hand-made screenshot saved under `image:`, or a hand-built screen. Say which beats these are. Do not fake them with the wrong URL.
+- In Live, a click anywhere on a screenshot follows `happy`. The edge buttons beside the frame follow the rest. When a beat needs real tap targets, build it by hand.
+- A screenshot fills the screen with `object-fit: contain`. Never `fill`.
+
+### Hand-built screens
+
+One file per beat: `src/screens/1.1.tsx`. Register it in `src/screens/index.ts`.
 
 ```tsx
 export function Start({ beat, interactive, onFollow }: ScreenProps) {
@@ -126,13 +157,13 @@ export function Start({ beat, interactive, onFollow }: ScreenProps) {
 }
 ```
 
-- Render inside the phone. Read copy from `beat.copy`.
+- Render inside the phone. Read copy from `beat.copy`. Read the size from `frame`, never a hardcoded width.
 - Use `go` from `src/screens/go.ts`. Primary follows `happy`. Back follows `back`.
 - Plain CSS and the variables in `src/styles/tokens.css`. No Tailwind.
 - Real content only. No lorem ipsum. Invent names and numbers once and reuse them.
 - Icons are Lucide, stroke 1.5, unless `design.md` says otherwise.
 
-A full-bleed screenshot fills the phone with `object-fit: contain`. Do not use `fill`. Hide the frame's status bar, island, and home indicator when the image already includes them. Put the tap target on the control in the image, not on a made-up sheet.
+A hand-built screen that shows an image uses the same rules: `object-fit: contain`, and hide the frame's status bar, island, and home indicator when the image already includes them. Put the tap target on the control in the image, not on a made-up sheet.
 
 ## Checks
 
@@ -140,7 +171,9 @@ On load, the viewer lists errors. It does not crash.
 
 - An edge points at a beat that does not exist.
 - A beat has no `why`.
-- A beat has no screen component yet.
+- A beat has no screen component or screenshot yet.
+- A beat has a `url:` but no screenshot yet.
+- A beat has a relative `url:` and there is no `base:`.
 - A beat has no outgoing edge and is not `end: true`.
 
 Do not add a banner for beats that lack a refusal or back edge.
