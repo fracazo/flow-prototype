@@ -1,10 +1,9 @@
-import { memo } from 'react'
+import { memo, type CSSProperties } from 'react'
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { EDGE_TYPES } from '../content/parseFlows.ts'
 import { useFrame } from '../device/DeviceContext.ts'
 import { mapScale } from '../device/devices.ts'
 import { ScaledPhone } from '../device/ScaledPhone.tsx'
-import { handleLeft, type BeatNodeData, type FlowLabelData } from './flowGraph.ts'
+import type { BeatNodeData } from './flowGraph.ts'
 
 type BeatNodeProps = NodeProps<Node<BeatNodeData, 'beat'>>
 
@@ -25,37 +24,19 @@ export const BeatNode = memo(function BeatNode({ data }: BeatNodeProps) {
   const frame = useFrame()
 
   return (
-    <div className={`beat-node flow-color-${flowIndex % 6}${dimmed ? ' is-dim' : ''}${selected ? ' is-selected' : ''}`}>
-      <div className="beat-node-body">
-        {EDGE_TYPES.map((type) => (
-          <Handle
-            key={`in-${type}`}
-            id={`in-${type}`}
-            type="target"
-            position={Position.Top}
-            isConnectable={false}
-            style={{ left: handleLeft(type) }}
-          />
-        ))}
-        {EDGE_TYPES.map((type) => (
-          <Handle
-            key={`out-${type}`}
-            id={`out-${type}`}
-            type="source"
-            position={Position.Top}
-            isConnectable={false}
-            style={{ left: handleLeft(type) }}
-          />
-        ))}
-        <div aria-hidden="true">
-          <ScaledPhone beat={beat} scale={mapScale(frame)} thumbnail />
-        </div>
+    <div
+      className={`beat-node flow-color-${flowIndex % 6}${dimmed ? ' is-dim' : ''}${selected ? ' is-selected' : ''}`}
+      style={{ '--row': flowIndex } as CSSProperties}
+    >
+      {/* Edges are routed in flowGraph.ts. React Flow still needs a handle on each end. */}
+      <Handle type="target" position={Position.Top} isConnectable={false} />
+      <Handle type="source" position={Position.Top} isConnectable={false} />
+      <div aria-hidden="true">
+        <ScaledPhone beat={beat} scale={mapScale(frame)} thumbnail />
       </div>
       <div className="beat-node-caption">
-        <span className="flow-dot" aria-hidden="true" />
-        <span className="beat-node-title">
-          {beat.id} {beat.title}
-        </span>
+        <span className="beat-node-id">{beat.id}</span>
+        <span className="beat-node-title">{beat.title}</span>
         {unhappy ? (
           <span className="unhappy-dot">
             <span className="unhappy-mark" aria-hidden="true" />
@@ -63,20 +44,6 @@ export const BeatNode = memo(function BeatNode({ data }: BeatNodeProps) {
           </span>
         ) : null}
       </div>
-      <p className="beat-node-why">{beat.why}</p>
     </div>
   )
 }, sameNode)
-
-export function FlowLabelNode({ data }: NodeProps<Node<FlowLabelData, 'flowLabel'>>) {
-  return (
-    <div className={`flow-label flow-color-${data.flowIndex % 6}`}>
-      <p className="flow-label-id">
-        <span className="flow-dot" aria-hidden="true" />
-        {data.flowId}
-      </p>
-      <h2>{data.name}</h2>
-      <p>{data.summary}</p>
-    </div>
-  )
-}

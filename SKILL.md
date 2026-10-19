@@ -101,6 +101,7 @@ edges:
 - `url:` marks a beat that already exists in the product. It is a path from `base:`, or a full URL. A beat with a `url:` needs no `copy:`: the words come from the screenshot.
 - `image:` names a screenshot file in `src/shots/` when it is not `<beat id>.png`. Use it for states a URL cannot reach.
 - `bleed: true` says the image already has the status bar and home indicator, so the frame hides its own.
+- `hide:` lists CSS selectors that capture hides before each shot, such as a chat widget or the Next.js dev indicator: `hide: nextjs-portal, #intercom-container`. Before the first flow it applies to every beat. Under a beat it adds selectors for that beat only. The line can repeat.
 
 Never change `flows.md` silently. If a beat or edge is missing, say so and suggest the exact lines.
 
@@ -108,13 +109,16 @@ Never change `flows.md` silently. If a beat or edge is missing, say so and sugge
 
 Two views of the same beats. The page around the phones is dark. Its look is in `src/styles/viewer.css`, which reads only `--viewer-*` tokens. Do not restyle the viewer to match the product, and do not put product tokens in `viewer.css`.
 
+One quiet bar on top: the product name, Map and Live as text tabs, a progress chip, and a device toggle (icons, hidden when flows.md names one device). The chip counts beats with a screen on the device on show, "14 of 24 screens". Click it for the beats with no screen yet, each a link to its node, and for any problems in flows.md. Nothing in the bar wraps at 1280px or wider. Below that the chip reads "14/24".
+
 ### Map
 
 `#/map`
 
-- Flows are rows. Beats sit left to right.
-- Each node is the phone, scaled down.
-- Edges are colored by type. A legend toggles each type.
+- Flows are lanes: a faint band per row, with the flow's id and name pinned to the left edge of the window. Beats sit left to right.
+- Each node is the phone, scaled down, with its id and title under it. The why is in the beat panel, not on the map. Zoomed out below 0.5, the caption grows so it stays legible.
+- Edges are colored by type. A small key in the bottom-left corner, above the zoom controls, toggles each type. Back edges start hidden.
+- The next happy step runs straight along the row. Every other edge leaves a beat from the top and runs through the empty channel above the row and the gaps between columns, so no edge crosses a screen.
 - Click a node to select it. The outline sits on the phone, with a margin, so the selection is visible.
 - Selecting a node dims the beats it does not connect to. Click empty canvas to clear. Hover never changes the map: nodes slide under the cursor while zooming, and hover focus made the whole map flash.
 - Open Live from a node.
@@ -125,7 +129,7 @@ Two views of the same beats. The page around the phones is dark. Its look is in 
 `#/live/1.1`
 
 - One device frame at that product's real size, plus the beat's why and its edges.
-- Arrow right follows `happy`. Arrow left follows `back`. Escape returns to the map.
+- Arrow right follows `happy`. Arrow left follows `back`. Escape returns to the map, centred on the beat you were on.
 - The frame scales uniformly to fit. It never grows past 1.
 
 ## Screens
@@ -150,7 +154,8 @@ npm run capture -- --thumbs # remake map thumbnails, for hand-made shots too
 
 - The script opens each `url:` at the device's screen size, minus the frame's status bar, home indicator, or browser bar, at 2x. Phones get a mobile user agent and touch.
 - `--login` opens a real browser at `base:`. The user signs in themselves. The session is saved to `capture-auth.json`, which is gitignored. Never type the user's password for them.
-- If the log says a beat was redirected, the session is missing or expired. Run `--login` again.
+- Capture first checks that `base:` answers. If the dev server is not running it stops with one line, not one error per beat.
+- A `url:` that redirects is not saved or counted. The log says `redirected to <url>: gated or mid-flow, needs image: or a hand-built screen`. Only when it lands on a sign-in page does it add `try --login`: the session is missing or expired.
 - A URL only reaches what a fresh page load shows. Mid-flow states (step 3 of a form, an error, an open sheet) need a hand-made screenshot saved under `image:`, or a hand-built screen. Say which beats these are. Do not fake them with the wrong URL.
 - In Live, a click anywhere on a screenshot follows `happy`. The edge buttons beside the frame follow the rest. When a beat needs real tap targets, build it by hand.
 - A screenshot fills the screen with `object-fit: contain`. Never `fill`.
@@ -217,9 +222,100 @@ resolve: {
 
 Only do this for components that render from props. Anything that needs the product's providers, router, data fetching, or auth stays out: screenshot that screen instead. Install whatever the component imports (`clsx`, `@radix-ui/*`) here too, and check `npm run build` passes.
 
+## Recording a demo
+
+`?present` turns the viewer into a clean stage for a screen recording. It works on `#/map?present` and `#/live/1.1?present` (or `/?present#/map`). It hides the top bar, the edge key, the progress chip, the zoom controls and the React Flow attribution, and the canvas fills the window. Escape still leaves Live. Add `&intro` to build the map in on load: lanes and their screens arrive row by row, then edges draw in. It plays once, and not at all under `prefers-reduced-motion`.
+
+In presentation mode only, `window.flow` drives the camera from a script or the browser console:
+
+| Call | Does |
+| --- | --- |
+| `flow.focus('2.3', { zoom: 1.1, duration: 900 })` | Centre a beat, easing in and out. Defaults: zoom 1, 900ms. With the beat panel open it centres in the space left of it. |
+| `flow.fit({ duration: 1600 })` | Ease out to the whole map. Default 900ms. |
+| `flow.select('2.3')` | Select a beat and open its panel. `null` clears it. |
+| `flow.live('2.3')` | Open Live on a beat, or on the selected one. |
+| `flow.device('iphone')` | Switch device. |
+| `flow.ready()` | Resolves once the map is laid out and the intro has played. |
+
+Each returns a promise. `focus` and `fit` switch to the map first when Live is open, so `fit` from Live pulls back from the current beat to the whole map. Select before you focus, so the focus allows for the panel. `ease` and `interpolate: 'linear'` pass through to React Flow.
+
+### The recording script
+
+```bash
+npm run dev                  # in one terminal
+npm run record               # demo.mp4, 1920×1080, 60fps
+npm run record -- --draft    # 1x frames, about four times faster, to check timing
+npm run record -- --4k       # keep 3840×2160
+npm run record -- --frames f # also save every frame as a PNG
+```
+
+It needs ffmpeg (`brew install ffmpeg`). Playwright's own video recording is fixed at about 25fps and drops frames when the machine is busy, so the script does not use it. Time in the page is frozen instead. Each frame moves both the JavaScript clock and every CSS animation on by exactly 1/60 s, then takes a 2x screenshot, so every frame is evenly spaced however slow the machine is. A 20 second video takes a few minutes. The scene lives in `scene()` in `scripts/record.ts`. Its core, to adapt:
+
+```ts
+import { spawn } from 'node:child_process'
+import { chromium } from 'playwright'
+
+const FRAME = 1000 / 60
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 })
+
+// Freeze time. install() alone lets it run on.
+await page.clock.install({ time: 0 })
+await page.clock.pauseAt(1000)
+// CSS animations ignore Playwright's clock: pause them and set their time by hand.
+await page.addInitScript(`
+  const start = new WeakMap(); let now = 0
+  window.__step = (ms) => {
+    for (const a of document.getAnimations()) {
+      if (!start.has(a)) start.set(a, now)
+      a.pause(); a.currentTime = now + ms - start.get(a)
+    }
+    now += ms
+  }`)
+await page.goto('http://localhost:5173/#/map?present&intro')
+await page.waitForFunction("'flow' in window")
+
+const ffmpeg = spawn('ffmpeg', ['-y', '-f', 'image2pipe', '-framerate', '60', '-i', '-',
+  '-vf', 'scale=1920:1080:flags=lanczos', '-c:v', 'libx264', '-crf', '14', '-pix_fmt', 'yuv420p', 'demo.mp4'])
+
+async function hold(ms: number) {
+  for (let t = 0; t < ms; t += FRAME) {
+    await page.clock.runFor(FRAME)
+    await page.evaluate(`window.__step(${FRAME})`)
+    ffmpeg.stdin.write(await page.screenshot())
+  }
+}
+// Start a camera move without awaiting it. It plays out while hold() takes frames.
+const run = (script: string) => page.evaluate(`void (${script})`)
+
+await hold(2400)                                          // the intro
+await run(`flow.focus('1.1', { zoom: 0.9, duration: 1400 })`)
+await hold(1900)                                          // focus a flow
+await run(`flow.select('1.2')`)
+await hold(300)
+await run(`flow.focus('1.2', { zoom: 1.1, duration: 900 })`)
+await hold(1800)                                          // select a beat
+await run(`flow.live('1.2')`)
+await hold(1200)                                          // open Live
+for (let i = 0; i < 5; i++) {
+  await page.keyboard.press('ArrowRight')
+  await hold(900)                                         // five beats along the happy path
+}
+await run(`flow.device('iphone')`)
+await hold(1500)                                          // switch device
+await run(`flow.fit({ duration: 1800 })`)
+await hold(2800)                                          // the whole map
+
+ffmpeg.stdin.end()
+await new Promise((done) => ffmpeg.on('close', done))
+await browser.close()
+```
+
+Never `await` a camera call while the clock is frozen: its promise only settles as frames are taken.
+
 ## Checks
 
-On load, the viewer lists errors. It does not crash.
+The viewer does not crash on a bad flows.md. Problems show in the progress chip's list, and the chip gets a red dot.
 
 - An edge points at a beat that does not exist.
 - A beat has no `why`.

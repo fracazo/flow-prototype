@@ -23,6 +23,8 @@ export type Beat = {
   image: string
   /** The screenshot already includes the status bar and home indicator. */
   bleed: boolean
+  /** CSS selectors to hide when capturing this beat, added to the product's. */
+  hide: string[]
   edges: Edge[]
   end: boolean
 }
@@ -40,6 +42,8 @@ export type Product = {
   device: string
   /** Where `url:` paths start, such as http://localhost:3000. */
   base: string
+  /** CSS selectors to hide when capturing every beat, such as a chat widget. */
+  hide: string[]
   flows: Flow[]
 }
 
@@ -75,9 +79,29 @@ function emptyBeat(id: string, flowId: string, title: string): Beat {
     url: '',
     image: '',
     bleed: false,
+    hide: [],
     edges: [],
     end: false,
   }
+}
+
+/** Split `a, b:is(c, d)` on top-level commas, so selector lists inside () or [] stay whole. */
+function splitSelectors(text: string): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let current = ''
+  for (const char of text) {
+    if (char === '(' || char === '[') depth += 1
+    if (char === ')' || char === ']') depth = Math.max(0, depth - 1)
+    if (char === ',' && depth === 0) {
+      parts.push(current)
+      current = ''
+      continue
+    }
+    current += char
+  }
+  parts.push(current)
+  return parts.map((part) => part.trim()).filter(Boolean)
 }
 
 /** What a beat renders. A component wins over a screenshot. */
@@ -85,7 +109,7 @@ export type ScreenSource = 'component' | 'shot' | 'none'
 
 export function parseFlows(source: string, screenOf: (beat: Beat, frame: DeviceFrame) => ScreenSource = () => 'component'): ParsedFlows {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
-  const product: Product = { name: '', promise: '', device: '', base: '', flows: [] }
+  const product: Product = { name: '', promise: '', device: '', base: '', hide: [], flows: [] }
   const issues: Issue[] = []
 
   let flow: Flow | null = null
@@ -163,6 +187,16 @@ export function parseFlows(source: string, screenOf: (beat: Beat, frame: DeviceF
 
     if (/^base:\s*/i.test(line) && !flow) {
       product.base = line.replace(/^base:\s*/i, '').trim()
+      continue
+    }
+
+    // Before any flow it applies to every beat; under a beat, to that beat only.
+    if (/^hide:\s*/i.test(line) && (!flow || beat)) {
+      const selectors = splitSelectors(line.replace(/^hide:\s*/i, ''))
+      if (beat) {
+        beat.hide.push(...selectors)
+        mode = 'root'
+      } else product.hide.push(...selectors)
       continue
     }
 

@@ -37,7 +37,7 @@ export function BeatPanel({ beat, onClose, onOpenLive, onSelect }: BeatPanelProp
         {beat.edges.map((edge, index) => (
           <li key={`${edge.type}-${edge.target}-${index}`}>
             <button type="button" onClick={() => onSelect(edge.target)}>
-              <span className={`legend-swatch swatch-${edge.type}`} aria-hidden="true" />
+              <span className={`edge-sample sample-${edge.type}`} aria-hidden="true" />
               {edgeLabel(edge, beat)}
               <span className="panel-target">{edge.target}</span>
             </button>

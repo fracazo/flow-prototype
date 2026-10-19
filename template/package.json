@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "capture": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/capture.ts",
-    "capture:setup": "playwright install chromium"
+    "capture:setup": "playwright install chromium",
+    "record": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/record.ts"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",

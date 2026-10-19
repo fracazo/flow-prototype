@@ -8,6 +8,9 @@
 //
 // Shots go to src/shots/<device>/<beat id>.png, with a small copy in thumbs/ for the map.
 // The viewer picks them up on reload.
+// `hide:` selectors (product-wide, plus the beat's own) are set to display: none before each shot.
+// A page that redirects somewhere else is reported and not saved: it is gated or mid-flow,
+// so that beat needs image: or a hand-built screen. Capture stops early if base: is not up.
 // A signed-in session is saved to capture-auth.json, which is gitignored.
 
 import { existsSync } from 'node:fs'
@@ -74,6 +77,33 @@ function resolveUrl(url: string, product: Product) {
   return new URL(url, product.base.endsWith('/') ? product.base : `${product.base}/`).toString()
 }
 
+/** Path and query, without a trailing slash, to tell a redirect from the page asked for. */
+function pageOf(url: string) {
+  const parsed = new URL(url)
+  return `${parsed.pathname.replace(/\/+$/, '')}${parsed.search}`
+}
+
+const SIGN_IN = /(sign-?in|log-?in|auth|session|sso|oauth)/i
+
+/** Why a server could not be reached, or null when it answered with any status. */
+async function unreachable(url: string): Promise<string | null> {
+  try {
+    await fetch(url, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(5_000) })
+    return null
+  } catch (error) {
+    const cause = (error as { cause?: { code?: string; message?: string } }).cause
+    if ((error as Error).name === 'TimeoutError') return 'no answer in 5s'
+    if (cause?.code === 'ECONNREFUSED') return 'connection refused'
+    if (cause?.code === 'ENOTFOUND') return 'host not found'
+    return cause?.message ?? (error as Error).message
+  }
+}
+
+/** One `display: none` rule per selector, so an invalid one drops only itself. */
+function hideStyle(selectors: string[]) {
+  return selectors.map((selector) => `${selector} { display: none !important; }`).join('\n')
+}
+
 async function login(product: Product) {
   if (!product.base) throw new Error('flows.md needs a base: line to sign in.')
   const browser = await chromium.launch({ headless: false })
@@ -124,8 +154,34 @@ async function main() {
   const frames = framesOf(product.device).frames.filter((frame) => !deviceId || frame.id === deviceId)
   if (frames.length === 0) throw new Error(`flows.md has no device "${deviceId}".`)
 
+  // Check each server answers before opening a browser, so a stopped dev server is one clear line.
+  const servers = new Map<string, string>()
+  for (const beat of beats) {
+    if (/^https?:\/\//i.test(beat.url)) servers.set(new URL(beat.url).origin, new URL(beat.url).origin)
+    else if (product.base) servers.set('base', product.base)
+  }
+  let down = false
+  for (const [key, url] of servers) {
+    const reason = await unreachable(url)
+    if (!reason) continue
+    down = true
+    console.error(
+      key === 'base'
+        ? `Could not reach base: ${url} (${reason}). Start the product's dev server, or fix base: in flows.md.`
+        : `Could not reach ${url} (${reason}). Check the url: lines that point there.`,
+    )
+  }
+  if (down) {
+    process.exitCode = 1
+    return
+  }
+
+  // Selectors the browser cannot parse drop only their own rule; say so once at the end.
+  const badSelectors = new Set<string>()
+
   const browser = await chromium.launch()
   let failed = 0
+  let redirected = 0
 
   for (const frame of frames) {
     const context = await browser.newContext(contextFor(frame))
@@ -139,11 +195,29 @@ async function main() {
       try {
         await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 })
         await page.waitForTimeout(300)
+        const landed = page.url()
+        if (pageOf(landed) !== pageOf(url)) {
+          redirected += 1
+          const landedUrl = new URL(landed)
+          const hint = SIGN_IN.test(landedUrl.pathname + landedUrl.search) ? ' (looks like sign-in: try --login)' : ''
+          console.log(
+            `${frame.id}  ${beat.id}  ${url}  redirected to ${landed}: gated or mid-flow, needs image: or a hand-built screen${hint}`,
+          )
+          continue
+        }
+        const hide = [...new Set([...product.hide, ...beat.hide])]
+        if (hide.length > 0) {
+          for (const selector of hide) {
+            if (badSelectors.has(selector)) continue
+            // A string, since this script's types have no DOM.
+            const valid = await page.evaluate<boolean>(`CSS.supports(${JSON.stringify(`selector(${selector})`)})`)
+            if (!valid) badSelectors.add(selector)
+          }
+          await page.addStyleTag({ content: hideStyle(hide) })
+        }
         await page.screenshot({ path: file, animations: 'disabled' })
         await writeThumb(browser, file)
-        const landed = page.url()
-        const moved = new URL(landed).pathname !== new URL(url).pathname
-        console.log(`${frame.id}  ${beat.id}  ${url}${moved ? `  (redirected to ${landed}: signed out? try --login)` : ''}`)
+        console.log(`${frame.id}  ${beat.id}  ${url}`)
       } catch (error) {
         failed += 1
         console.error(`${frame.id}  ${beat.id}  ${url}  failed: ${(error as Error).message.split('\n')[0]}`)
@@ -156,8 +230,15 @@ async function main() {
   }
 
   await browser.close()
+  for (const selector of badSelectors) {
+    console.warn(`hide: "${selector}" is not a valid CSS selector, so it was skipped.`)
+  }
   const total = beats.length * frames.length
-  console.log(`${total - failed} of ${total} captured, in src/shots/<device>/.`)
+  const parts = [`${total - failed - redirected} of ${total} captured`]
+  if (redirected > 0) parts.push(`${redirected} redirected`)
+  if (failed > 0) parts.push(`${failed} failed`)
+  console.log(`${parts.join(', ')}, in src/shots/<device>/.`)
+  // Redirects are reported but exit 0: they need a different screen source, not a rerun.
   if (failed > 0) process.exitCode = 1
 }
 

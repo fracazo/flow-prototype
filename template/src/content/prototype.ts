@@ -14,3 +14,8 @@ export const prototype = parseFlows(markdown, screenOf)
 
 /** Every device the product names. The first is the default. */
 export const frames = framesOf(prototype.product.device).frames
+
+/** True when the beat draws a real screen, not the grey placeholder, on this device. */
+export function hasScreen(beat: Beat, frame: DeviceFrame) {
+  return screenOf(beat, frame) !== 'none'
+}
