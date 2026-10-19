@@ -73,6 +73,17 @@ edges:
 
 - Flow ids are integers. Beat ids are `flow.beat`, such as `1.4`.
 - `copy` keys are free form. A screen uses that copy word for word.
+- Long copy is a block. Put `|` after the key and indent the text under it. A blank line starts a new paragraph. Do not invent `body2`, `body3`.
+
+  ```md
+  - body: |
+      First paragraph, which may wrap
+      over several lines.
+
+      Second paragraph.
+  ```
+
+  In a screen, `paragraphs(beat.copy.body)` from `src/screens/copy.ts` returns one string per paragraph.
 - Six edge types, and nothing else: `happy`, `branch`, `refusal`, `back`, `sheet`, `inline`.
   - `happy`: next step when all goes well.
   - `branch`: a real alternative route.

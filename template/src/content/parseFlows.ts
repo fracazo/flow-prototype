@@ -91,14 +91,37 @@ export function parseFlows(source: string, screenOf: (beat: Beat, product: Produ
   let flow: Flow | null = null
   let beat: Beat | null = null
   let mode: 'root' | 'copy' | 'edges' = 'root'
+  // A `- key: |` copy entry: the indented lines under it, until the indent drops back.
+  let block: { beat: Beat; key: string; indent: number; lines: string[] } | null = null
+
+  const finishBlock = () => {
+    if (!block) return
+    block.beat.copy[block.key] = block.lines
+      .join('\n')
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.split('\n').map((part) => part.trim()).join(' ').trim())
+      .filter(Boolean)
+      .join('\n\n')
+    block = null
+  }
 
   const flushBeat = () => {
+    finishBlock()
     if (beat && flow) flow.beats.push(beat)
     beat = null
     mode = 'root'
   }
 
   for (const raw of lines) {
+    if (block) {
+      const indent = raw.length - raw.trimStart().length
+      if (!raw.trim() || indent > block.indent) {
+        block.lines.push(raw)
+        continue
+      }
+      finishBlock()
+    }
+
     const line = raw.trim()
     if (!line) continue
 
@@ -216,7 +239,13 @@ export function parseFlows(source: string, screenOf: (beat: Beat, product: Produ
           message: `Duplicate copy key "${key}" on ${beat.id}.`,
         })
       }
-      beat.copy[key] = match[2].trim()
+      const value = match[2].trim()
+      if (value === '|') {
+        beat.copy[key] = ''
+        block = { beat, key, indent: raw.length - raw.trimStart().length, lines: [] }
+        continue
+      }
+      beat.copy[key] = value
       continue
     }
 

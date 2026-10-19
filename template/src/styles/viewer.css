@@ -432,6 +432,7 @@ a:focus-visible {
 
 .copy-row dd {
   margin: var(--viewer-space-4) 0 0;
+  white-space: pre-line;
   font-size: var(--viewer-body-size);
   line-height: var(--viewer-body-line);
 }
