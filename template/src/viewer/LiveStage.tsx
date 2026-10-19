@@ -24,12 +24,19 @@ export function LiveStage({ beat, onFollow, onRestart, onOverview }: LiveStagePr
       const availH = stage.clientHeight - 48
       const availW = stage.clientWidth - 40
       setFit(Math.min(1, availH / frame.height, availW / (frame.width + 256)))
+      // The frame must be laid out at its real size and only then scaled.
+      const phone = stage.querySelector<HTMLElement>('.live-row > .phone')
+      if (phone && (phone.offsetWidth !== frame.width || phone.offsetHeight !== frame.height)) {
+        console.error(
+          `Live laid out ${frame.label} at ${phone.offsetWidth}×${phone.offsetHeight}, not ${frame.width}×${frame.height}.`,
+        )
+      }
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(stage)
     return () => observer.disconnect()
-  }, [frame.height, frame.width])
+  }, [frame.height, frame.width, frame.label])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

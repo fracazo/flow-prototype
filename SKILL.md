@@ -7,11 +7,11 @@ description: Set up a clickable flow prototype for any product on any device, in
 
 A standalone Vite app for any product, on any device. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
-The prototype is its own Vite app with its own `package.json`. For an existing product it may sit beside the product, for example `<repo>/prototype/`, so it can read the product's files. Never put it inside the product's `src` or build.
+It has its own `package.json`. For an existing product it may sit beside the product, for example `<repo>/prototype/`, so it can read the product's files. Never put it inside the product's `src` or build.
 
 ## Core principle
 
-**The frame matches the device, and the words on it come from flows.md.**
+**The frame matches the device, and what is on it comes from the product: a screenshot, or copy in flows.md.**
 
 Do not assume iPhone. Ask which device before you start, and write the answer in `flows.md`. The frame keeps that size and aspect ratio. Do not stretch it, crop it, or scale it on one axis. Live may shrink the whole frame uniformly so it fits the window.
 
@@ -46,7 +46,7 @@ For a new product, skip this step and agree `design.md` with the user first.
 2. Copy `template/` into an empty folder. Do not copy `node_modules`.
 3. Run `npm install`, then `npm run dev`.
 4. `design.md` ships blank. Fill it (step 0, or with the user) before writing any screen. A filled-in sample is in `examples/` next to this file. It belongs to another product: never copy its values.
-5. Replace `flows.md` with the real product. For an existing product, add `url:` to each beat that already exists and run `npm run capture` (see Screenshots).
+5. Replace `flows.md` with the real product. For an existing product, add `url:` to each beat that already exists and run `npm run capture` (see Screenshots first).
 6. Open `#/map`. Stop and show the user the map before writing real screens.
 
 ## flows.md
@@ -150,6 +150,7 @@ npm run capture -- --login # sign in by hand once, then capture signed in
 - A URL only reaches what a fresh page load shows. Mid-flow states (step 3 of a form, an error, an open sheet) need a hand-made screenshot saved under `image:`, or a hand-built screen. Say which beats these are. Do not fake them with the wrong URL.
 - In Live, a click anywhere on a screenshot follows `happy`. The edge buttons beside the frame follow the rest. When a beat needs real tap targets, build it by hand.
 - A screenshot fills the screen with `object-fit: contain`. Never `fill`.
+- Commit `src/shots/` with the prototype. Run the capture again when the product changes.
 
 ### Hand-built screens
 
@@ -175,6 +176,7 @@ export function Start({ beat, interactive, onFollow }: ScreenProps) {
 - Style with the product's own tools: plain CSS and the variables in `src/styles/tokens.css`, or Tailwind when the product uses it (below). Never the `--viewer-*` tokens.
 - Real content only. No lorem ipsum. Invent names and numbers once and reuse them.
 - Icons are Lucide, stroke 1.5, unless `design.md` says otherwise.
+- A hand-built screen that shows an image uses the screenshot rules: `object-fit: contain`, and hide the frame's status bar, island, and home indicator when the image already includes them. Put the tap target on the control in the image, not on a made-up sheet.
 
 ### When the product uses Tailwind
 
@@ -200,7 +202,7 @@ Leave out Tailwind's preflight (`@import 'tailwindcss'` pulls it in). It resets 
 Copy small presentational components (a button, a card, a row) into `src/screens/ui/` and keep their class names. When the prototype sits beside the product, an alias can import them in place instead:
 
 ```ts
-// vite.config.ts
+// vite.config.ts, with: import { fileURLToPath } from 'node:url'
 resolve: {
   alias: { '@product': fileURLToPath(new URL('../src', import.meta.url)) },
   dedupe: ['react', 'react-dom'],
@@ -208,8 +210,6 @@ resolve: {
 ```
 
 Only do this for components that render from props. Anything that needs the product's providers, router, data fetching, or auth stays out: screenshot that screen instead. Install whatever the component imports (`clsx`, `@radix-ui/*`) here too, and check `npm run build` passes.
-
-A hand-built screen that shows an image uses the same rules: `object-fit: contain`, and hide the frame's status bar, island, and home indicator when the image already includes them. Put the tap target on the control in the image, not on a made-up sheet.
 
 ## Checks
 
@@ -221,6 +221,8 @@ On load, the viewer lists errors. It does not crash.
 - A beat has a `url:` but no screenshot yet.
 - A beat has a relative `url:` and there is no `base:`.
 - A beat has no outgoing edge and is not `end: true`.
+
+Live also logs a console error when a frame is laid out at any size other than its real one. Check the console after adding a wide device.
 
 Do not add a banner for beats that lack a refusal or back edge.
 
