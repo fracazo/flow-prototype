@@ -811,11 +811,18 @@ a:focus-visible {
   display: flex;
 }
 
+/* The row is laid out at full size, then scaled. Without max-content it takes
+   the scaled width of .live-fit and squeezes wide frames before scaling. */
 .live-row {
   display: flex;
   align-items: flex-start;
   gap: 36px;
+  width: max-content;
   transform-origin: top left;
+}
+
+.live-row > .phone {
+  flex: none;
 }
 
 .live-controls {
