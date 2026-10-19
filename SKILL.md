@@ -170,9 +170,42 @@ export function Start({ beat, interactive, onFollow }: ScreenProps) {
 
 - Render inside the phone. Read copy from `beat.copy`. Read the size from `frame`, never a hardcoded width.
 - Use `go` from `src/screens/go.ts`. Primary follows `happy`. Back follows `back`.
-- Plain CSS and the variables in `src/styles/tokens.css`. No Tailwind.
+- Style with the product's own tools: plain CSS and the variables in `src/styles/tokens.css`, or Tailwind when the product uses it (below). Never the `--viewer-*` tokens.
 - Real content only. No lorem ipsum. Invent names and numbers once and reuse them.
 - Icons are Lucide, stroke 1.5, unless `design.md` says otherwise.
+
+### When the product uses Tailwind
+
+Use its classes, so a screen reads like the product's own code. Turn it on once:
+
+1. `npm i -D tailwindcss @tailwindcss/vite`, at the product's major version.
+2. Add `tailwindcss()` from `@tailwindcss/vite` to `plugins` in `vite.config.ts`.
+3. Create `src/styles/screens.css` and import it in `src/main.tsx` after `viewer.css`:
+
+   ```css
+   @layer theme, utilities;
+   @import 'tailwindcss/theme.css' layer(theme);
+   @import 'tailwindcss/utilities.css' layer(utilities);
+   @source '../screens';
+
+   /* The product's @theme block, copied from its CSS, or @import that file. */
+   ```
+
+Leave out Tailwind's preflight (`@import 'tailwindcss'` pulls it in). It resets every element on the page, and the viewer would lose its look.
+
+### Reusing the product's components
+
+Copy small presentational components (a button, a card, a row) into `src/screens/ui/` and keep their class names. When the prototype sits beside the product, an alias can import them in place instead:
+
+```ts
+// vite.config.ts
+resolve: {
+  alias: { '@product': fileURLToPath(new URL('../src', import.meta.url)) },
+  dedupe: ['react', 'react-dom'],
+},
+```
+
+Only do this for components that render from props. Anything that needs the product's providers, router, data fetching, or auth stays out: screenshot that screen instead. Install whatever the component imports (`clsx`, `@radix-ui/*`) here too, and check `npm run build` passes.
 
 A hand-built screen that shows an image uses the same rules: `object-fit: contain`, and hide the frame's status bar, island, and home indicator when the image already includes them. Put the tap target on the control in the image, not on a made-up sheet.
 
