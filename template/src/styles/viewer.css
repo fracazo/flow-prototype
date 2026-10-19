@@ -477,10 +477,35 @@ a:focus-visible {
   text-underline-offset: 3px;
 }
 
+/* A scaled-down frame. Its bezel and rings are divided by --phone-scale so they keep
+   the same on-screen thickness on every device. Box-shadow follows the frame's own
+   corner radius, so the rings always hug it. */
 .phone-in-map {
+  --bezel: calc(4px / var(--phone-scale, 1));
+  --ring: calc(var(--bezel) + 2px / var(--phone-scale, 1));
   box-shadow:
-    0 0 0 8px var(--viewer-panel),
-    0 16px 32px rgba(0, 0, 0, 0.35);
+    0 0 0 var(--bezel) var(--viewer-panel),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 150ms ease-out;
+}
+
+.beat-node:hover .phone-in-map {
+  box-shadow:
+    0 0 0 var(--bezel) var(--viewer-border),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.beat-node.is-selected .phone-in-map {
+  box-shadow:
+    0 0 0 var(--bezel) var(--viewer-panel),
+    0 0 0 var(--ring) var(--node-flow, var(--viewer-text)),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-in-map {
+    transition: none;
+  }
 }
 
 .app-shell {
@@ -758,12 +783,6 @@ a:focus-visible {
 
 .beat-node.is-dim {
   opacity: 0.28;
-}
-
-.beat-node.is-selected .scaled-phone {
-  outline: 2px solid var(--viewer-text);
-  outline-offset: 10px;
-  border-radius: 22px;
 }
 
 .beat-node-caption {

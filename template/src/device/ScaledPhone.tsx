@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Beat, Edge } from '../content/parseFlows.ts'
 import { useFrame } from './DeviceContext.ts'
 import { PhoneFrame } from './PhoneFrame.tsx'
@@ -24,7 +25,10 @@ export function ScaledPhone({
   const frame = useFrame()
 
   return (
-    <div className="scaled-phone" style={{ width: frame.width * scale, height: frame.height * scale }}>
+    <div
+      className="scaled-phone"
+      style={{ width: frame.width * scale, height: frame.height * scale, '--phone-scale': scale } as CSSProperties}
+    >
       <div
         className="scaled-phone-inner"
         style={{ width: frame.width, height: frame.height, transform: `scale(${scale})` }}
@@ -32,7 +36,7 @@ export function ScaledPhone({
         <PhoneFrame
           frame={frame}
           label={`${beat.id} ${beat.title}`}
-          className={scale < 0.9 ? 'phone-in-map' : undefined}
+          className="phone-in-map"
           landmark={landmark}
         >
           <BeatScreen
