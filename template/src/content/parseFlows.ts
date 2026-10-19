@@ -1,5 +1,5 @@
 // Pure parser: no Vite imports, so scripts/capture.ts can run it in Node.
-import { frameOf } from '../device/devices.ts'
+import { framesOf, type DeviceFrame } from '../device/devices.ts'
 
 export const EDGE_TYPES = ['happy', 'branch', 'refusal', 'back', 'sheet', 'inline'] as const
 
@@ -83,7 +83,7 @@ function emptyBeat(id: string, flowId: string, title: string): Beat {
 /** What a beat renders. A component wins over a screenshot. */
 export type ScreenSource = 'component' | 'shot' | 'none'
 
-export function parseFlows(source: string, screenOf: (beat: Beat, product: Product) => ScreenSource = () => 'component'): ParsedFlows {
+export function parseFlows(source: string, screenOf: (beat: Beat, frame: DeviceFrame) => ScreenSource = () => 'component'): ParsedFlows {
   const lines = source.replace(/\r\n/g, '\n').split('\n')
   const product: Product = { name: '', promise: '', device: '', base: '', flows: [] }
   const issues: Issue[] = []
@@ -276,8 +276,8 @@ export function parseFlows(source: string, screenOf: (beat: Beat, product: Produ
     issues.push({ level: 'error', message: 'flows.md has no product name.' })
   }
 
-  const chosen = frameOf(product.device)
-  if (chosen.error) issues.push({ level: 'error', message: chosen.error })
+  const { frames, errors: deviceErrors } = framesOf(product.device)
+  for (const message of deviceErrors) issues.push({ level: 'error', message })
 
   const beats = product.flows.flatMap((item) => item.beats)
   const ids = new Set<string>()
@@ -309,14 +309,16 @@ export function parseFlows(source: string, screenOf: (beat: Beat, product: Produ
       })
     }
 
-    if (screenOf(item, product) === 'none') {
+    for (const frame of frames) {
+      if (screenOf(item, frame) !== 'none') continue
+      const on = frames.length > 1 ? ` for ${frame.label}` : ''
       issues.push({
         level: 'error',
         beatId: item.id,
         placeholder: true,
         message: item.url
-          ? `${item.id} has a url but no screenshot yet. Run npm run capture.`
-          : `${item.id} has no screen component or screenshot yet.`,
+          ? `${item.id} has a url but no screenshot${on} yet. Run npm run capture.`
+          : `${item.id} has no screen component or screenshot${on} yet.`,
       })
     }
 

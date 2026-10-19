@@ -1,6 +1,6 @@
 import { MarkerType, type Edge as FlowEdge, type Node } from '@xyflow/react'
 import { EDGE_TYPES, type Beat, type EdgeType, type Product } from '../content/parseFlows.ts'
-import { frameOf, mapScale } from '../device/devices.ts'
+import { mapScale, type DeviceFrame } from '../device/devices.ts'
 
 const NODE_W = 230
 const COL_GAP = 88
@@ -65,11 +65,10 @@ export function edgeDash(type: EdgeType) {
   return DASH[type]
 }
 
-export function buildGraph(product: Product): { nodes: Node[]; edges: FlowEdge[] } {
+export function buildGraph(product: Product, frame: DeviceFrame): { nodes: Node[]; edges: FlowEdge[] } {
   const nodes: Node[] = []
   const edges: FlowEdge[] = []
 
-  const frame = frameOf(product.device).frame
   const scale = mapScale(frame)
   const nodeW = Math.max(NODE_W, Math.ceil(frame.width * scale) + 24)
   const rowPitch = frame.height * scale + LABEL_OFFSET + ROW_GAP

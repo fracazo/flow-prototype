@@ -535,7 +535,8 @@ a:focus-visible {
   cursor: pointer;
 }
 
-.view-switch button[aria-selected='true'] {
+.view-switch button[aria-selected='true'],
+.view-switch button[aria-pressed='true'] {
   background: var(--viewer-selected-bg);
   color: var(--viewer-ink);
 }

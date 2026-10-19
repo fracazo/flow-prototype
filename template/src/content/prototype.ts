@@ -1,13 +1,16 @@
 import markdown from '../../flows.md?raw'
-import { frameOf } from '../device/devices.ts'
+import { framesOf, type DeviceFrame } from '../device/devices.ts'
 import { screens } from '../screens/index.ts'
 import { shotFor } from '../shots/shots.ts'
-import { parseFlows, type Beat, type Product, type ScreenSource } from './parseFlows.ts'
+import { parseFlows, type Beat, type ScreenSource } from './parseFlows.ts'
 
-function screenOf(beat: Beat, product: Product): ScreenSource {
+function screenOf(beat: Beat, frame: DeviceFrame): ScreenSource {
   if (screens[beat.id]) return 'component'
-  if (shotFor(beat, frameOf(product.device).frame.id)) return 'shot'
+  if (shotFor(beat, frame.id)) return 'shot'
   return 'none'
 }
 
 export const prototype = parseFlows(markdown, screenOf)
+
+/** Every device the product names. The first is the default. */
+export const frames = framesOf(prototype.product.device).frames

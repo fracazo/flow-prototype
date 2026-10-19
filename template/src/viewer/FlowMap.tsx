@@ -12,6 +12,7 @@ import { BeatNode, FlowLabelNode } from './BeatNode.tsx'
 import { LaneEdge } from './LaneEdge.tsx'
 import { buildGraph, edgeDash, type BeatNodeData } from './flowGraph.ts'
 import { prototype } from '../content/prototype.ts'
+import { useFrame } from '../device/DeviceContext.ts'
 
 const nodeTypes = { beat: BeatNode, flowLabel: FlowLabelNode }
 const edgeTypes = { lane: LaneEdge }
@@ -43,7 +44,8 @@ function relatedIds(beatId: string, beats: Beat[]) {
 
 export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapProps) {
   const beats = useMemo(() => prototype.product.flows.flatMap((flow) => flow.beats), [])
-  const graph = useMemo(() => buildGraph(prototype.product), [])
+  const frame = useFrame()
+  const graph = useMemo(() => buildGraph(prototype.product, frame), [frame])
   const [hoverId, setHoverId] = useState<string | null>(null)
   const colors = useMemo(() => readEdgeColors(), [])
 

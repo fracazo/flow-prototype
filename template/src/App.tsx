@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { EDGE_TYPES } from './content/parseFlows.ts'
-import { prototype } from './content/prototype.ts'
-import { frameOf } from './device/devices.ts'
+import { frames, prototype } from './content/prototype.ts'
+import { DeviceContext } from './device/DeviceContext.ts'
 import type { Beat, Edge, EdgeType, Issue } from './content/parseFlows.ts'
 import { BeatPanel } from './viewer/BeatPanel.tsx'
 import { FlowMap } from './viewer/FlowMap.tsx'
 import { LiveStage } from './viewer/LiveStage.tsx'
 
 const { product, issues } = prototype
-const frame = frameOf(product.device).frame
 
 type Route = {
   view: 'map' | 'live'
   beatId: string | null
+  /** Device id, from ?device= in the hash. The first device is the default. */
+  device: string
 }
 
 function allBeats() {
@@ -20,21 +21,24 @@ function allBeats() {
 }
 
 function parseHash(): Route {
-  const hash = window.location.hash.replace(/^#/, '')
+  const [hash, query = ''] = window.location.hash.replace(/^#/, '').split('?')
+  const asked = new URLSearchParams(query).get('device')
+  const device = frames.find((frame) => frame.id === asked)?.id ?? frames[0].id
   const live = /^\/live\/([0-9S]+\.[0-9]+)$/.exec(hash)
-  if (live) return { view: 'live', beatId: live[1] }
+  if (live) return { view: 'live', beatId: live[1], device }
   const map = /^\/map\/([0-9S]+\.[0-9]+)$/.exec(hash)
-  if (map) return { view: 'map', beatId: map[1] }
-  return { view: 'map', beatId: null }
+  if (map) return { view: 'map', beatId: map[1], device }
+  return { view: 'map', beatId: null, device }
 }
 
 function writeHash(route: Route) {
-  const next =
+  const path =
     route.view === 'live' && route.beatId
       ? `#/live/${route.beatId}`
       : route.beatId
         ? `#/map/${route.beatId}`
         : '#/map'
+  const next = route.device === frames[0].id ? path : `${path}?device=${route.device}`
   if (window.location.hash !== next) window.location.hash = next
 }
 
@@ -50,20 +54,21 @@ export default function App() {
 
   useEffect(() => {
     document.title = product.name ? `${product.name} · Flow map` : 'Flow map'
-    if (!window.location.hash) writeHash({ view: 'map', beatId: null })
+    if (!window.location.hash) writeHash({ view: 'map', beatId: null, device: frames[0].id })
     const onHash = () => setRoute(parseHash())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   const selected = route.beatId ? byId.get(route.beatId) : undefined
+  const frame = frames.find((item) => item.id === route.device) ?? frames[0]
   const errors = issues.filter((item) => item.level === 'error')
   const hints = issues.filter((item) => item.level === 'hint')
   const otherErrors = errors.filter((item) => !item.placeholder)
   const missingScreens = errors.length - otherErrors.length
 
-  function go(next: Route) {
-    writeHash(next)
+  function go(next: Omit<Route, 'device'> & { device?: string }) {
+    writeHash({ ...next, device: next.device ?? route.device })
   }
 
   function toggleEdge(type: EdgeType) {
@@ -81,7 +86,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <DeviceContext.Provider value={frame}>
       <a className="skip" href={route.view === 'map' ? '#flow-map' : '#live-phone'}>
         Skip to {route.view === 'map' ? 'map' : 'phone'}
       </a>
@@ -109,6 +114,20 @@ export default function App() {
               Live
             </button>
           </div>
+          {frames.length > 1 ? (
+            <div className="view-switch" role="group" aria-label="Device">
+              {frames.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={item.id === frame.id}
+                  onClick={() => go({ view: route.view, beatId: route.beatId, device: item.id })}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {route.view === 'map' ? <EdgeLegend hidden={hiddenEdges} onToggle={toggleEdge} /> : null}
           <IssueSummary missingScreens={missingScreens} otherErrors={otherErrors} hints={hints} />
         </header>
@@ -116,6 +135,7 @@ export default function App() {
         {route.view === 'map' ? (
           <div className={selected ? 'map-wrap' : 'map-wrap panel-closed'} id="flow-map">
             <FlowMap
+              key={frame.id}
               selectedId={selected?.id ?? null}
               hidden={hiddenEdges}
               onSelect={(beatId) => go({ view: 'map', beatId })}
@@ -144,7 +164,7 @@ export default function App() {
           </div>
         )}
       </div>
-    </>
+    </DeviceContext.Provider>
   )
 }
 

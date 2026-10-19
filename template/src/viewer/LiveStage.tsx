@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Beat, Edge } from '../content/parseFlows.ts'
-import { frameOf } from '../device/devices.ts'
+import { useFrame } from '../device/DeviceContext.ts'
 import { PhoneFrame } from '../device/PhoneFrame.tsx'
 import { BeatScreen } from '../device/BeatScreen.tsx'
-import { prototype } from '../content/prototype.ts'
 import { edgeLabel } from './edgeLabel.ts'
 
 type LiveStageProps = {
@@ -16,7 +15,7 @@ type LiveStageProps = {
 export function LiveStage({ beat, onFollow, onRestart, onOverview }: LiveStageProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState(1)
-  const frame = frameOf(prototype.product.device).frame
+  const frame = useFrame()
 
   useEffect(() => {
     const stage = stageRef.current

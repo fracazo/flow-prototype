@@ -53,6 +53,20 @@ export function frameOf(value?: string): { frame: DeviceFrame; error?: string } 
   }
 }
 
+/** `device: web, iphone` lists several. The first is the default. Duplicates are dropped. */
+export function framesOf(value?: string): { frames: DeviceFrame[]; errors: string[] } {
+  const frames: DeviceFrame[] = []
+  const errors: string[] = []
+  for (const part of (value || 'iphone').split(',')) {
+    if (!part.trim()) continue
+    const { frame, error } = frameOf(part)
+    if (error) errors.push(error)
+    else if (!frames.some((item) => item.id === frame.id)) frames.push(frame)
+  }
+  if (frames.length === 0) frames.push(PRESETS.iphone)
+  return { frames, errors }
+}
+
 /** The page size a screenshot is captured at: the screen minus the frame's chrome. */
 export function captureSize(frame: DeviceFrame) {
   const bar = frame.chrome === 'web' ? BROWSER_BAR : 0

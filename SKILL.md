@@ -19,7 +19,9 @@ Do not assume iPhone. Ask which device before you start, and write the answer in
 device: iphone
 ```
 
-Names: `iphone`, `android`, `web`, `watch`, `tv`. For another screen, use a size: `device: 1024x640`. A missing line uses iPhone. An unknown name is an error and falls back to iPhone. A watch has no status island. A TV is a wide screen. A web page is a browser window. Do not hardcode 393×852 in a screen.
+Names: `iphone`, `android`, `web`, `watch`, `tv`. For another screen, use a size: `device: 1024x640`. A missing line uses iPhone. An unknown name is an error and is skipped.
+
+A product on more than one device lists them all: `device: web, iphone`. The first is the default. Map and Live get a device toggle, and the URL keeps the choice (`#/live/1.2?device=iphone`). Every beat is drawn on every device: a screen reads `frame` and lays itself out for it, and `npm run capture` shoots each `url:` once per device. A watch has no status island. A TV is a wide screen. A web page is a browser window. Do not hardcode 393×852 in a screen.
 
 Copy, colors, and spacing are not typed into components. If something is missing from `flows.md` or `design.md`, ask, or add it there first.
 

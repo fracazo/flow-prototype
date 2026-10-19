@@ -1,6 +1,5 @@
 import type { Beat, Edge } from '../content/parseFlows.ts'
-import { prototype } from '../content/prototype.ts'
-import { frameOf } from './devices.ts'
+import { useFrame } from './DeviceContext.ts'
 import { PhoneFrame } from './PhoneFrame.tsx'
 import { BeatScreen } from './BeatScreen.tsx'
 
@@ -13,7 +12,7 @@ type ScaledPhoneProps = {
 }
 
 export function ScaledPhone({ beat, scale, interactive = false, onFollow, landmark = false }: ScaledPhoneProps) {
-  const frame = frameOf(prototype.product.device).frame
+  const frame = useFrame()
 
   return (
     <div className="scaled-phone" style={{ width: frame.width * scale, height: frame.height * scale }}>

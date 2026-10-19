@@ -2,6 +2,7 @@
 //
 //   npm run capture                 every beat with a url
 //   npm run capture -- 1.2 1.3      only these beats
+//   npm run capture -- --device web only this device (default: every device in flows.md)
 //   npm run capture -- --login      open a browser, sign in by hand, save the session
 //
 // Shots go to src/shots/<device>/<beat id>.png. The viewer picks them up on reload.
@@ -14,7 +15,7 @@ import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import { chromium, devices, type BrowserContextOptions } from 'playwright'
 import { parseFlows, type Product } from '../src/content/parseFlows.ts'
-import { captureSize, frameOf, type DeviceFrame } from '../src/device/devices.ts'
+import { captureSize, framesOf, type DeviceFrame } from '../src/device/devices.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const authFile = join(root, 'capture-auth.json')
@@ -61,7 +62,10 @@ async function main() {
 
   if (args.includes('--login')) return login(product)
 
-  const only = new Set(args.filter((arg) => !arg.startsWith('--')))
+  const deviceFlag = args.indexOf('--device')
+  const deviceId = deviceFlag >= 0 ? args[deviceFlag + 1] : undefined
+  const beatIds = args.filter((arg, index) => !arg.startsWith('--') && (deviceFlag < 0 || index !== deviceFlag + 1))
+  const only = new Set(beatIds)
   const beats = product.flows
     .flatMap((flow) => flow.beats)
     .filter((beat) => beat.url && (only.size === 0 || only.has(beat.id)))
@@ -71,34 +75,42 @@ async function main() {
     return
   }
 
-  const frame = frameOf(product.device).frame
+  const frames = framesOf(product.device).frames.filter((frame) => !deviceId || frame.id === deviceId)
+  if (frames.length === 0) throw new Error(`flows.md has no device "${deviceId}".`)
+
   const browser = await chromium.launch()
-  const context = await browser.newContext(contextFor(frame))
-  const outDir = join(root, 'src', 'shots', frame.id)
-  await mkdir(outDir, { recursive: true })
   let failed = 0
 
-  for (const beat of beats) {
-    const url = resolveUrl(beat.url, product)
-    const file = join(outDir, beat.image || `${beat.id}.png`)
-    const page = await context.newPage()
-    try {
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 })
-      await page.waitForTimeout(300)
-      await page.screenshot({ path: file, animations: 'disabled' })
-      const landed = page.url()
-      const moved = new URL(landed).pathname !== new URL(url).pathname
-      console.log(`${beat.id}  ${url}${moved ? `  (redirected to ${landed}: signed out? try --login)` : ''}`)
-    } catch (error) {
-      failed += 1
-      console.error(`${beat.id}  ${url}  failed: ${(error as Error).message.split('\n')[0]}`)
-    } finally {
-      await page.close()
+  for (const frame of frames) {
+    const context = await browser.newContext(contextFor(frame))
+    const outDir = join(root, 'src', 'shots', frame.id)
+    await mkdir(outDir, { recursive: true })
+
+    for (const beat of beats) {
+      const url = resolveUrl(beat.url, product)
+      const file = join(outDir, beat.image || `${beat.id}.png`)
+      const page = await context.newPage()
+      try {
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 })
+        await page.waitForTimeout(300)
+        await page.screenshot({ path: file, animations: 'disabled' })
+        const landed = page.url()
+        const moved = new URL(landed).pathname !== new URL(url).pathname
+        console.log(`${frame.id}  ${beat.id}  ${url}${moved ? `  (redirected to ${landed}: signed out? try --login)` : ''}`)
+      } catch (error) {
+        failed += 1
+        console.error(`${frame.id}  ${beat.id}  ${url}  failed: ${(error as Error).message.split('\n')[0]}`)
+      } finally {
+        await page.close()
+      }
     }
+
+    await context.close()
   }
 
   await browser.close()
-  console.log(`${beats.length - failed} of ${beats.length} captured at ${frame.label}, in src/shots/${frame.id}/.`)
+  const total = beats.length * frames.length
+  console.log(`${total - failed} of ${total} captured, in src/shots/<device>/.`)
   if (failed > 0) process.exitCode = 1
 }
 
