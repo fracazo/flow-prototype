@@ -114,6 +114,7 @@ Two views of the same beats. The page around the phones is dark. Its look is in 
 - Each node is the phone, scaled down.
 - Edges are colored by type. A legend toggles each type.
 - Click a node to select it. The outline sits on the phone, with a margin, so the selection is visible.
+- Selecting a node dims the beats it does not connect to. Click empty canvas to clear. Hover never changes the map: nodes slide under the cursor while zooming, and hover focus made the whole map flash.
 - Open Live from a node.
 - Zoom controls only. No minimap.
 

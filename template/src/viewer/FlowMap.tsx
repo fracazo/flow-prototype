@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   Background,
   Controls,
@@ -21,6 +21,7 @@ type FlowMapProps = {
   selectedId: string | null
   hidden: ReadonlySet<EdgeType>
   onSelect: (beatId: string) => void
+  onClear: () => void
   onOpenLive: (beatId: string) => void
 }
 
@@ -42,29 +43,30 @@ function relatedIds(beatId: string, beats: Beat[]) {
   return ids
 }
 
-export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapProps) {
+export function FlowMap({ selectedId, hidden, onSelect, onClear, onOpenLive }: FlowMapProps) {
   const beats = useMemo(() => prototype.product.flows.flatMap((flow) => flow.beats), [])
   const frame = useFrame()
   const graph = useMemo(() => buildGraph(prototype.product, frame), [frame])
-  const [hoverId, setHoverId] = useState<string | null>(null)
   const colors = useMemo(() => readEdgeColors(), [])
 
   const nodes = useMemo<Node[]>(() => {
-    const focus = hoverId ? relatedIds(hoverId, beats) : null
+    // Focus follows the selection, not the pointer. Hover focus flashed the whole
+    // map whenever a node slid under the cursor while zooming or panning.
+    const focus = selectedId ? relatedIds(selectedId, beats) : null
     return graph.nodes.map((node) => {
       if (node.type !== 'beat') return node
       const data = node.data as BeatNodeData
       const dimmed = focus ? !focus.has(node.id) : false
       return {
         ...node,
-        zIndex: node.id === hoverId || node.id === selectedId ? 10 : 0,
+        zIndex: node.id === selectedId ? 10 : 0,
         data: { ...data, dimmed, selected: node.id === selectedId },
       }
     })
-  }, [graph.nodes, hoverId, selectedId, beats])
+  }, [graph.nodes, selectedId, beats])
 
   const edges = useMemo<FlowEdge[]>(() => {
-    const focus = hoverId ? relatedIds(hoverId, beats) : null
+    const focus = selectedId ? relatedIds(selectedId, beats) : null
     return graph.edges.flatMap((edge) => {
       const edgeType = edge.data?.edgeType as EdgeType
       if (hidden.has(edgeType)) return []
@@ -88,7 +90,7 @@ export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapPro
         },
       ]
     })
-  }, [graph.edges, hidden, hoverId, beats, colors])
+  }, [graph.edges, hidden, selectedId, beats, colors])
 
   return (
     <div className="map-canvas">
@@ -113,10 +115,7 @@ export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapPro
         onNodeDoubleClick={(_, node) => {
           if (node.type === 'beat') onOpenLive(node.id)
         }}
-        onNodeMouseEnter={(_, node) => {
-          if (node.type === 'beat') setHoverId(node.id)
-        }}
-        onNodeMouseLeave={() => setHoverId(null)}
+        onPaneClick={onClear}
       >
         <Background gap={22} size={1} color="#24282e" />
         <Controls position="bottom-left" showInteractive={false} />

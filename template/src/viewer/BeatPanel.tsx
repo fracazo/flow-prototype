@@ -1,4 +1,5 @@
 import type { Beat } from '../content/parseFlows.ts'
+import { useFrame } from '../device/DeviceContext.ts'
 import { ScaledPhone } from '../device/ScaledPhone.tsx'
 import { edgeLabel } from './edgeLabel.ts'
 
@@ -9,7 +10,13 @@ type BeatPanelProps = {
   onSelect: (beatId: string) => void
 }
 
+// The panel is 360 wide with 20 padding each side.
+const PANEL_INNER = 320
+
 export function BeatPanel({ beat, onClose, onOpenLive, onSelect }: BeatPanelProps) {
+  const frame = useFrame()
+  const scale = Math.min(0.64, PANEL_INNER / frame.width)
+
   return (
     <aside className="beat-panel" aria-label={`${beat.id} ${beat.title}`}>
       <div className="panel-toolbar">
@@ -24,7 +31,7 @@ export function BeatPanel({ beat, onClose, onOpenLive, onSelect }: BeatPanelProp
       <h2>{beat.title}</h2>
       <p className="beat-why">{beat.why}</p>
       {beat.screen ? <p className="beat-screen">{beat.screen}</p> : null}
-      <ScaledPhone beat={beat} scale={0.64} landmark />
+      <ScaledPhone beat={beat} scale={scale} landmark />
       <h3>Edges</h3>
       <ul className="panel-edges">
         {beat.edges.map((edge, index) => (

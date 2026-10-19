@@ -139,6 +139,7 @@ export default function App() {
               selectedId={selected?.id ?? null}
               hidden={hiddenEdges}
               onSelect={(beatId) => go({ view: 'map', beatId })}
+              onClear={() => go({ view: 'map', beatId: null })}
               onOpenLive={(beatId) => go({ view: 'live', beatId })}
             />
             {selected ? (

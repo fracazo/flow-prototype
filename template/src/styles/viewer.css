@@ -752,6 +752,10 @@ a:focus-visible {
   margin-bottom: var(--viewer-space-4);
 }
 
+.beat-node {
+  transition: opacity 150ms ease-out;
+}
+
 .beat-node.is-dim {
   opacity: 0.28;
 }
@@ -800,8 +804,19 @@ a:focus-visible {
   transform-origin: top left;
 }
 
+.react-flow__edge {
+  transition: opacity 150ms ease-out;
+}
+
 .react-flow__edge.edge-dim {
   opacity: 0.12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beat-node,
+  .react-flow__edge {
+    transition: none;
+  }
 }
 
 .beat-panel {
