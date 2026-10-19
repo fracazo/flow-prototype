@@ -26,7 +26,7 @@ type FlowMapProps = {
 function readEdgeColors() {
   const style = getComputedStyle(document.documentElement)
   const colors = {} as Record<EdgeType, string>
-  for (const type of EDGE_TYPES) colors[type] = style.getPropertyValue(`--edge-${type}`).trim()
+  for (const type of EDGE_TYPES) colors[type] = style.getPropertyValue(`--viewer-edge-${type}`).trim()
   return colors
 }
 
@@ -67,7 +67,7 @@ export function FlowMap({ selectedId, hidden, onSelect, onOpenLive }: FlowMapPro
       const edgeType = edge.data?.edgeType as EdgeType
       if (hidden.has(edgeType)) return []
       const linked = !focus || focus.has(edge.source) || focus.has(edge.target)
-      const color = colors?.[edgeType] ?? 'var(--edge-happy)'
+      const color = colors?.[edgeType] ?? 'var(--viewer-edge-happy)'
       return [
         {
           ...edge,
