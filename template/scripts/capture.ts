@@ -4,21 +4,58 @@
 //   npm run capture -- 1.2 1.3      only these beats
 //   npm run capture -- --device web only this device (default: every device in flows.md)
 //   npm run capture -- --login      open a browser, sign in by hand, save the session
+//   npm run capture -- --thumbs     only remake map thumbnails, for every image in src/shots
 //
-// Shots go to src/shots/<device>/<beat id>.png. The viewer picks them up on reload.
+// Shots go to src/shots/<device>/<beat id>.png, with a small copy in thumbs/ for the map.
+// The viewer picks them up on reload.
 // A signed-in session is saved to capture-auth.json, which is gitignored.
 
 import { existsSync } from 'node:fs'
-import { mkdir, readFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { mkdir, readdir, readFile } from 'node:fs/promises'
+import { basename, dirname, extname, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
-import { chromium, devices, type BrowserContextOptions } from 'playwright'
+import { chromium, devices, type Browser, type BrowserContextOptions } from 'playwright'
 import { parseFlows, type Product } from '../src/content/parseFlows.ts'
 import { captureSize, framesOf, type DeviceFrame } from '../src/device/devices.ts'
+import { THUMB_WIDTH } from '../src/shots/thumbs.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const authFile = join(root, 'capture-auth.json')
+const shotsDir = join(root, 'src', 'shots')
+const IMAGE = /\.(png|jpe?g|webp)$/i
+const MIME: Record<string, string> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' }
+
+/** Write a THUMB_WIDTH-wide copy of a shot to thumbs/ beside it, for the map. */
+async function writeThumb(browser: Browser, file: string) {
+  const out = join(dirname(file), 'thumbs', basename(file).replace(/\.webp$/i, '.png'))
+  const data = (await readFile(file)).toString('base64')
+  const page = await browser.newPage({ viewport: { width: THUMB_WIDTH, height: 100 }, deviceScaleFactor: 1 })
+  try {
+    const type = MIME[extname(file).toLowerCase()]
+    await page.setContent(
+      `<body style="margin:0"><img id="shot" style="display:block;width:${THUMB_WIDTH}px" src="data:${type};base64,${data}"></body>`,
+    )
+    // setContent waits for the load event, so the image is decoded by now.
+    const image = page.locator('#shot')
+    await mkdir(dirname(out), { recursive: true })
+    await image.screenshot({ path: out })
+  } finally {
+    await page.close()
+  }
+}
+
+/** Every image in src/shots, leaving out the thumbs folders. */
+async function allShots(dir = shotsDir): Promise<string[]> {
+  if (!existsSync(dir)) return []
+  const found: string[] = []
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory() && entry.name !== 'thumbs') found.push(...(await allShots(path)))
+    else if (entry.isFile() && IMAGE.test(entry.name)) found.push(path)
+  }
+  return found
+}
 
 function contextFor(frame: DeviceFrame): BrowserContextOptions {
   const viewport = captureSize(frame)
@@ -62,6 +99,15 @@ async function main() {
 
   if (args.includes('--login')) return login(product)
 
+  if (args.includes('--thumbs')) {
+    const browser = await chromium.launch()
+    const files = await allShots()
+    for (const file of files) await writeThumb(browser, file)
+    await browser.close()
+    console.log(`Made ${files.length} map thumbnails.`)
+    return
+  }
+
   const deviceFlag = args.indexOf('--device')
   const deviceId = deviceFlag >= 0 ? args[deviceFlag + 1] : undefined
   const beatIds = args.filter((arg, index) => !arg.startsWith('--') && (deviceFlag < 0 || index !== deviceFlag + 1))
@@ -83,7 +129,7 @@ async function main() {
 
   for (const frame of frames) {
     const context = await browser.newContext(contextFor(frame))
-    const outDir = join(root, 'src', 'shots', frame.id)
+    const outDir = join(shotsDir, frame.id)
     await mkdir(outDir, { recursive: true })
 
     for (const beat of beats) {
@@ -94,6 +140,7 @@ async function main() {
         await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 })
         await page.waitForTimeout(300)
         await page.screenshot({ path: file, animations: 'disabled' })
+        await writeThumb(browser, file)
         const landed = page.url()
         const moved = new URL(landed).pathname !== new URL(url).pathname
         console.log(`${frame.id}  ${beat.id}  ${url}${moved ? `  (redirected to ${landed}: signed out? try --login)` : ''}`)

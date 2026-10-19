@@ -143,6 +143,7 @@ npm run capture:setup      # once: downloads Chromium for Playwright
 npm run capture            # every beat with a url:
 npm run capture -- 1.2 1.3 # only these beats
 npm run capture -- --login # sign in by hand once, then capture signed in
+npm run capture -- --thumbs # remake map thumbnails, for hand-made shots too
 ```
 
 - The script opens each `url:` at the device's screen size, minus the frame's status bar, home indicator, or browser bar, at 2x. Phones get a mobile user agent and touch.
@@ -151,6 +152,8 @@ npm run capture -- --login # sign in by hand once, then capture signed in
 - A URL only reaches what a fresh page load shows. Mid-flow states (step 3 of a form, an error, an open sheet) need a hand-made screenshot saved under `image:`, or a hand-built screen. Say which beats these are. Do not fake them with the wrong URL.
 - In Live, a click anywhere on a screenshot follows `happy`. The edge buttons beside the frame follow the rest. When a beat needs real tap targets, build it by hand.
 - A screenshot fills the screen with `object-fit: contain`. Never `fill`.
+- Each shot also gets a 400px copy in `thumbs/` beside it. Map draws the thumbnail. Live and the beat panel draw the full shot. A full-size image in every map node costs about 15MB each once decoded, and makes the map stutter while zooming.
+- After adding a hand-made screenshot, run `npm run capture -- --thumbs`. Map warns in the console when it draws an image more than 4x its size.
 - Commit `src/shots/` with the prototype. Run the capture again when the product changes.
 
 ### Hand-built screens

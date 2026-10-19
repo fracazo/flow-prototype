@@ -57,11 +57,8 @@ export function FlowMap({ selectedId, hidden, onSelect, onClear, onOpenLive }: F
       if (node.type !== 'beat') return node
       const data = node.data as BeatNodeData
       const dimmed = focus ? !focus.has(node.id) : false
-      return {
-        ...node,
-        zIndex: node.id === selectedId ? 10 : 0,
-        data: { ...data, dimmed, selected: node.id === selectedId },
-      }
+      const selected = node.id === selectedId
+      return { ...node, zIndex: selected ? 10 : 0, data: { ...data, dimmed, selected } }
     })
   }, [graph.nodes, selectedId, beats])
 

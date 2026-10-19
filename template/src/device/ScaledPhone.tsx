@@ -9,9 +9,18 @@ type ScaledPhoneProps = {
   interactive?: boolean
   onFollow?: (edge: Edge) => void
   landmark?: boolean
+  /** Draw screenshots from their small thumbnail. For the map, where nodes are tiny. */
+  thumbnail?: boolean
 }
 
-export function ScaledPhone({ beat, scale, interactive = false, onFollow, landmark = false }: ScaledPhoneProps) {
+export function ScaledPhone({
+  beat,
+  scale,
+  interactive = false,
+  onFollow,
+  landmark = false,
+  thumbnail = false,
+}: ScaledPhoneProps) {
   const frame = useFrame()
 
   return (
@@ -26,7 +35,13 @@ export function ScaledPhone({ beat, scale, interactive = false, onFollow, landma
           className={scale < 0.9 ? 'phone-in-map' : undefined}
           landmark={landmark}
         >
-          <BeatScreen beat={beat} frame={frame} interactive={interactive} onFollow={onFollow} />
+          <BeatScreen
+            beat={beat}
+            frame={frame}
+            interactive={interactive}
+            onFollow={onFollow}
+            thumbnail={thumbnail ? frame.width * scale : undefined}
+          />
         </PhoneFrame>
       </div>
     </div>

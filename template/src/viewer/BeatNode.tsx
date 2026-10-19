@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { EDGE_TYPES } from '../content/parseFlows.ts'
 import { useFrame } from '../device/DeviceContext.ts'
@@ -5,7 +6,21 @@ import { mapScale } from '../device/devices.ts'
 import { ScaledPhone } from '../device/ScaledPhone.tsx'
 import { handleLeft, type BeatNodeData, type FlowLabelData } from './flowGraph.ts'
 
-export function BeatNode({ data }: NodeProps<Node<BeatNodeData, 'beat'>>) {
+type BeatNodeProps = NodeProps<Node<BeatNodeData, 'beat'>>
+
+// The map rebuilds node data on every selection. Only re-render a node, and the
+// whole screen inside it, when something it draws has changed.
+function sameNode(a: BeatNodeProps, b: BeatNodeProps) {
+  return (
+    a.data.beat === b.data.beat &&
+    a.data.flowIndex === b.data.flowIndex &&
+    a.data.unhappy === b.data.unhappy &&
+    a.data.dimmed === b.data.dimmed &&
+    a.data.selected === b.data.selected
+  )
+}
+
+export const BeatNode = memo(function BeatNode({ data }: BeatNodeProps) {
   const { beat, flowIndex, unhappy, dimmed, selected } = data
   const frame = useFrame()
 
@@ -33,7 +48,7 @@ export function BeatNode({ data }: NodeProps<Node<BeatNodeData, 'beat'>>) {
           />
         ))}
         <div aria-hidden="true">
-          <ScaledPhone beat={beat} scale={mapScale(frame)} />
+          <ScaledPhone beat={beat} scale={mapScale(frame)} thumbnail />
         </div>
       </div>
       <div className="beat-node-caption">
@@ -51,7 +66,7 @@ export function BeatNode({ data }: NodeProps<Node<BeatNodeData, 'beat'>>) {
       <p className="beat-node-why">{beat.why}</p>
     </div>
   )
-}
+}, sameNode)
 
 export function FlowLabelNode({ data }: NodeProps<Node<FlowLabelData, 'flowLabel'>>) {
   return (
