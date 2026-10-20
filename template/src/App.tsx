@@ -90,7 +90,7 @@ export default function App() {
   const cameraWaiters = useRef<((camera: Camera) => void)[]>([])
 
   useEffect(() => {
-    document.title = product.name ? `${product.name} · Flow map` : 'Flow map'
+    document.title = product.name ? `${product.name} · Flow prototype` : 'Flow prototype'
     if (!window.location.hash) writeHash({ view: 'map', beatId: null, device: frames[0].id })
     const onHash = () => setRoute(parseHash())
     window.addEventListener('hashchange', onHash)

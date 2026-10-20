@@ -1,11 +1,18 @@
 ---
 name: flow-prototype
-description: Set up a clickable flow prototype for a mobile or desktop product, on iPhone, Android, or web. Map shows every screen of every flow. Live walks one path, screen by screen, in that device's frame. Use when the user wants a flow map, a clickable prototype, flows.md, design.md, or every screen of a product on one page.
+description: Map every screen and every path of a mobile or desktop product (iPhone, Android, web) on one canvas, and walk each path live in the device's frame. Screenshots the screens that already exist and builds only the new ones. Use when the user wants a flow map, user flows, a clickable prototype, every screen of a product on one page, flows.md or design.md, or a demo video of a product's flows.
 ---
 
 # Flow prototype
 
-A standalone Vite app for a mobile or desktop product. Map shows every screen. Live walks one path, screen by screen, in that device's frame. What exists lives in `flows.md`. How it looks lives in `design.md`.
+Every screen of a product and every path between them, on one canvas you can walk through. The screens and paths are written in `flows.md`. This skill builds a standalone Vite app with two views of them:
+
+- **Map**: each flow is a lane, each screen sits in its device frame, and each edge (happy, branch, refusal, back, sheet, inline) is routed between them.
+- **Live**: one path, screen by screen, in the device's frame. The arrow keys walk it.
+
+Screens that already exist are screenshots of the real product. Only the new ones are built by hand. It works for iPhone, Android and web, and for a product on several at once. `?present` and `npm run record` turn it into a demo video.
+
+Use it to see a whole product at once, find missing screens and unhappy paths, or walk someone through a flow before it is built. What exists lives in `flows.md`. How it looks lives in `design.md`.
 
 It has its own `package.json`. For an existing product it may sit beside the product, for example `<repo>/prototype/`, so it can read the product's files. Never put it inside the product's `src` or build.
 
@@ -152,6 +159,7 @@ npm run capture -- --login # sign in by hand once, then capture signed in
 npm run capture -- --thumbs # remake map thumbnails, for hand-made shots too
 ```
 
+- `url:` points at the user's own product: localhost, or a staging host they control. Never capture someone else's site.
 - The script opens each `url:` at the device's screen size, minus the frame's status bar, home indicator, or browser bar, at 2x. Phones get a mobile user agent and touch.
 - `--login` opens a real browser at `base:`. The user signs in themselves. The session is saved to `capture-auth.json`, which is gitignored. Never type the user's password for them.
 - Capture first checks that `base:` answers. If the dev server is not running it stops with one line, not one error per beat.

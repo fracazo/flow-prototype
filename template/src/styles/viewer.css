@@ -3,7 +3,7 @@
    tokens.css, so changing the product can never restyle the viewer. */
 
 :root {
-  --viewer-font: Inter, system-ui, sans-serif;
+  --viewer-font: 'Inter Variable', Inter, system-ui, sans-serif;
 
   --viewer-bg: #111316;
   --viewer-panel: #181b1f;
